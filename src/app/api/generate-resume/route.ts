@@ -74,24 +74,29 @@ async function extractTextFromResume(file: File): Promise<string> {
     const buffer = Buffer.from(await file.arrayBuffer());
     console.log("Buffer created, size:", buffer.length);
 
-    if (file.type === "application/pdf") {
+    // Check file extension if MIME type is not reliable
+    const fileName = file.name.toLowerCase();
+    const isPdf = file.type === "application/pdf" || fileName.endsWith('.pdf');
+    const isWordDoc = file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || 
+                     file.type === "application/msword" || 
+                     fileName.endsWith('.docx') || 
+                     fileName.endsWith('.doc');
+
+    if (isPdf) {
       console.log("Processing as PDF...");
       const data = await pdf(buffer);
       console.log("PDF parsed, text length:", data.text.length);
       console.log("PDF text preview:", data.text.substring(0, 200));
       return data.text;
-    } else if (
-      file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-      file.type === "application/msword"
-    ) {
+    } else if (isWordDoc) {
       console.log("Processing as Word document...");
       const result = await mammoth.extractRawText({ buffer });
       console.log("Word document parsed, text length:", result.value.length);
       console.log("Word text preview:", result.value.substring(0, 200));
       return result.value;
     } else {
-      console.log("Unsupported file type:", file.type);
-      throw new Error(`Unsupported file type: ${file.type}. Please upload a PDF or Word document.`);
+      console.log("Unsupported file:", { type: file.type, name: file.name });
+      throw new Error(`Unsupported file: ${file.name}. Please upload a PDF (.pdf) or Word document (.docx, .doc). Detected type: ${file.type}`);
     }
   } catch (error) {
     console.error("Error extracting text from resume:", error);

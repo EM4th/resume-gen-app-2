@@ -92,7 +92,7 @@ export default function Home() {
                       type="file"
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       onChange={handleFileChange}
-                      accept=".pdf,.doc,.docx"
+                      accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                       required
                     />
                     <div className="border-2 border-gray-300 border-dashed rounded-2xl p-6 text-center hover:border-blue-400 transition-colors">
