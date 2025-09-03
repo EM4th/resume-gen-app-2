@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 AI Resume Generator
 
-## Getting Started
+**Live Site**: https://www.resume-gen.app/
 
-First, run the development server:
+Transform your resume with AI to match any job description perfectly.
 
+## 🎨 Current Status
+
+### ✅ **UI Design - COMPLETE & LIVE**
+Beautiful modern design with:
+- Purple-to-blue gradient background
+- Glassmorphism cards with backdrop blur
+- Mobile-first responsive layout
+- Modern file upload interface
+- Gradient buttons with hover effects
+
+### ❌ **API Functionality - NEEDS DEBUGGING**
+Current issue: 500 Internal Server Error
+- Environment variables may not be set in Vercel
+- Test endpoint available at `/api/test`
+
+## 🔧 Quick Setup
+
+### Local Development
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
+```bash
+# .env.local
+GOOGLE_GEMINI_API_KEY=your_api_key_here
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Vercel Deployment
+1. Connect GitHub repository
+2. Add environment variable: `GOOGLE_GEMINI_API_KEY`
+3. Deploy
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚨 Next Steps to Fix
 
-## Learn More
+1. **Check environment variables**: Visit `/api/test` endpoint
+2. **Add missing env vars** to Vercel dashboard if needed
+3. **Test with plain text** job descriptions (not URLs)
+4. **Debug specific errors** with enhanced logging
 
-To learn more about Next.js, take a look at the following resources:
+## 🛠️ Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Frontend**: Next.js 15.5.2, TypeScript, Tailwind CSS
+- **AI**: Google Gemini API
+- **Scraping**: Puppeteer + Chromium
+- **Documents**: PDF parsing, Word generation
+- **Hosting**: Vercel
+- **Domain**: resume-gen.app
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📁 Key Files
 
-## Deploy on Vercel
+- `src/app/page.tsx` - Main UI with gradient design
+- `src/app/api/generate-resume/route.ts` - AI processing endpoint
+- `src/components/ResumeDisplay.tsx` - Results display
+- `src/app/api/test/route.ts` - Debug endpoint
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+*Beautiful UI is complete and live. API functionality needs environment variable configuration in Vercel.*
