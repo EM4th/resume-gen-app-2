@@ -84,23 +84,33 @@ async function extractTextFromResume(file: File): Promise<string> {
 
     if (isPdf) {
       console.log("Processing as PDF...");
-      const data = await pdf(buffer);
-      console.log("PDF parsed, text length:", data.text.length);
-      console.log("PDF text preview:", data.text.substring(0, 200));
-      return data.text;
+      try {
+        const data = await pdf(buffer);
+        console.log("PDF parsed, text length:", data.text.length);
+        console.log("PDF text preview:", data.text.substring(0, 200));
+        return data.text;
+      } catch (pdfError) {
+        console.error("PDF parsing failed:", pdfError);
+        throw new Error(`PDF parsing failed: ${pdfError instanceof Error ? pdfError.message : 'Unknown PDF error'}`);
+      }
     } else if (isWordDoc) {
       console.log("Processing as Word document...");
-      const result = await mammoth.extractRawText({ buffer });
-      console.log("Word document parsed, text length:", result.value.length);
-      console.log("Word text preview:", result.value.substring(0, 200));
-      return result.value;
+      try {
+        const result = await mammoth.extractRawText({ buffer });
+        console.log("Word document parsed, text length:", result.value.length);
+        console.log("Word text preview:", result.value.substring(0, 200));
+        return result.value;
+      } catch (wordError) {
+        console.error("Word parsing failed:", wordError);
+        throw new Error(`Word document parsing failed: ${wordError instanceof Error ? wordError.message : 'Unknown Word error'}`);
+      }
     } else {
       console.log("Unsupported file:", { type: file.type, name: file.name });
       throw new Error(`Unsupported file: ${file.name}. Please upload a PDF (.pdf) or Word document (.docx, .doc). Detected type: ${file.type}`);
     }
   } catch (error) {
     console.error("Error extracting text from resume:", error);
-    throw new Error(`Failed to extract text from resume: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw error; // Re-throw the original error to preserve the specific message
   }
 }
 
