@@ -11,6 +11,7 @@ const ResumeDisplay = dynamic(() => import("../components/ResumeDisplay"), {
 export default function Home() {
   const [jobUrl, setJobUrl] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [outputFormat, setOutputFormat] = useState("PDF");
   const [generatedResume, setGeneratedResume] = useState("");
   const [explanation, setExplanation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -64,78 +65,116 @@ export default function Home() {
         src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7524647518323966"
         crossOrigin="anonymous"
       />
-      <div className="container mx-auto p-4">
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold">AI Resume Generator</h1>
-          <p className="text-lg text-gray-600">
-            Tailor your resume for any job description instantly.
-          </p>
-        </header>
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-800">
+        <div className="container mx-auto p-4 flex items-center justify-center min-h-screen">
+          <div className="w-full max-w-md">
+            {/* Header Card */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 mb-6 text-center border border-white/20">
+              <div className="text-6xl mb-4">🚀</div>
+              <h1 className="text-3xl font-bold text-white mb-4">
+                AI Resume Generator
+              </h1>
+              <p className="text-white/80 text-lg">
+                Transform your resume with AI to match any job description perfectly
+              </p>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="card bg-base-100 shadow-xl md:col-span-1">
-            <div className="card-body">
-              <h2 className="card-title text-2xl">Your Info</h2>
-              <form onSubmit={handleSubmit}>
-                <div className="form-control w-full mb-4">
-                  <label className="label">
-                    <span className="label-text">Job Posting URL</span>
+            {/* Main Form Card */}
+            <div className="bg-white rounded-3xl p-8 shadow-2xl">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-3 text-lg">
+                    Upload Your Resume (PDF):
                   </label>
-                  <input
-                    type="url"
-                    placeholder="https://example.com/job-posting"
-                    className="input input-bordered w-full"
+                  <div className="relative">
+                    <input
+                      type="file"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      onChange={handleFileChange}
+                      accept=".pdf,.doc,.docx"
+                      required
+                    />
+                    <div className="border-2 border-gray-300 border-dashed rounded-2xl p-6 text-center hover:border-blue-400 transition-colors">
+                      <div className="text-gray-500">
+                        <div className="text-3xl mb-2">📄</div>
+                        {resumeFile ? (
+                          <span className="text-blue-600 font-medium">
+                            {resumeFile.name}
+                          </span>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                            >
+                              Choose File
+                            </button>
+                            <span className="ml-2">No file chosen</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-3 text-lg">
+                    Job Description (URL or Text):
+                  </label>
+                  <textarea
+                    placeholder="Paste job description text or enter a job posting URL..."
+                    className="w-full h-32 p-4 border border-gray-300 rounded-2xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     value={jobUrl}
                     onChange={(e) => setJobUrl(e.target.value)}
                     required
                   />
                 </div>
-                <div className="form-control w-full mb-4">
-                  <label className="label">
-                    <span className="label-text">Upload Your Resume</span>
+
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-3 text-lg">
+                    Output Format:
                   </label>
-                  <input
-                    type="file"
-                    className="file-input file-input-bordered file-input-primary w-full"
-                    onChange={handleFileChange}
-                    accept=".pdf,.doc,.docx"
-                    required
-                  />
+                  <select 
+                    className="w-full p-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={outputFormat}
+                    onChange={(e) => setOutputFormat(e.target.value)}
+                  >
+                    <option>PDF</option>
+                    <option>Word Document</option>
+                  </select>
                 </div>
+
                 <button
                   type="submit"
-                  className="btn btn-primary btn-lg w-full"
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold text-lg py-4 rounded-2xl hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:transform-none flex items-center justify-center gap-2"
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <span className="loading loading-spinner"></span>
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Generating...
+                    </>
                   ) : (
-                    "Generate Resume"
+                    <>
+                      🎯 Generate Enhanced Resume
+                    </>
                   )}
                 </button>
               </form>
             </div>
-          </div>
 
-          <ResumeDisplay
-            generatedResume={generatedResume}
-            explanation={explanation}
-            isLoading={isLoading}
-          />
+            {/* Results */}
+            {(generatedResume || explanation) && (
+              <div className="mt-6">
+                <ResumeDisplay
+                  generatedResume={generatedResume}
+                  explanation={explanation}
+                  isLoading={isLoading}
+                />
+              </div>
+            )}
+          </div>
         </div>
-        <footer className="text-center mt-12 mb-4 text-gray-500">
-          <p>
-            Monetized with{" "}
-            <a
-              href="https://www.google.com/adsense"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:underline"
-            >
-              Google AdSense
-            </a>
-          </p>
-        </footer>
       </div>
     </>
   );

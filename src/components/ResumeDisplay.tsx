@@ -53,64 +53,78 @@ export default function ResumeDisplay({
   };
 
   return (
-    <div className="card bg-base-100 shadow-xl col-span-1 md:col-span-2">
-      <div className="card-body">
-        <h2 className="card-title text-2xl">Your Enhanced Resume</h2>
-        {isLoading && (
-          <div className="text-center p-8">
-            <span className="loading loading-lg loading-infinity"></span>
-            <p className="mt-4">
-              Our AI is analyzing the job description and crafting your perfect
-              resume...
-            </p>
+    <div className="space-y-6">
+      {/* AI Explanation Card */}
+      {explanation && (
+        <div className="bg-white rounded-3xl p-6 shadow-xl">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="text-2xl">🤖</div>
+            <h3 className="text-xl font-bold text-gray-800">
+              AI&apos;s Enhancement Strategy
+            </h3>
           </div>
-        )}
-        {generatedResume && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-xl font-bold mb-2">
-                AI&apos;s Enhancement Strategy
-              </h3>
-              <div className="prose prose-sm max-w-none p-4 bg-base-200 rounded-lg">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {explanation}
-                </ReactMarkdown>
-              </div>
+          <div className="prose prose-sm max-w-none text-gray-600">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {explanation}
+            </ReactMarkdown>
+          </div>
+        </div>
+      )}
+
+      {/* Resume Preview Card */}
+      {generatedResume && (
+        <div className="bg-white rounded-3xl p-6 shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="text-2xl">📄</div>
+              <h3 className="text-xl font-bold text-gray-800">Enhanced Resume</h3>
             </div>
-            <div>
-              <h3 className="text-xl font-bold mb-2">Preview</h3>
-              <div
-                ref={resumeRef}
-                className="prose lg:prose-xl max-w-none p-6 bg-white rounded-lg shadow-inner"
-                dangerouslySetInnerHTML={{ __html: generatedResume }}
-              />
-              <div className="mt-6 flex gap-4">
-                <button
-                  className="btn btn-primary btn-lg"
-                  onClick={handleDownloadPdf}
-                >
-                  Download PDF
-                </button>
-                <button
-                  className="btn btn-secondary btn-lg"
-                  onClick={handleDownloadDocx}
-                >
-                  Download Word Doc
-                </button>
-              </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleDownloadPdf}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+              >
+                📄 PDF
+              </button>
+              <button
+                onClick={handleDownloadDocx}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              >
+                📝 Word
+              </button>
             </div>
           </div>
-        )}
-        {!isLoading && !generatedResume && (
-          <div className="text-center text-gray-500 p-12">
-            <h3 className="text-xl">Your new resume will appear here</h3>
-            <p>
-              Just paste a job URL, upload your current resume, and let our AI
-              do the rest.
-            </p>
+          
+          <div className="bg-gray-50 rounded-2xl p-4 max-h-96 overflow-y-auto">
+            <div
+              ref={resumeRef}
+              className="bg-white p-6 rounded-lg shadow-sm text-sm"
+              dangerouslySetInnerHTML={{ __html: generatedResume }}
+            />
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="bg-white rounded-3xl p-8 shadow-xl text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">
+            AI is analyzing and enhancing your resume...
+          </p>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !generatedResume && !explanation && (
+        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 text-center border border-white/20">
+          <div className="text-4xl mb-4">✨</div>
+          <h3 className="text-xl font-bold text-white mb-2">Ready to Transform Your Resume?</h3>
+          <p className="text-white/80">
+            Upload your resume and job description above to get started
+          </p>
+        </div>
+      )}
     </div>
   );
 }
