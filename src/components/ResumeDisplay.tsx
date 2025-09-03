@@ -21,7 +21,33 @@ export default function ResumeDisplay({
   const resumeRef = useRef<HTMLDivElement>(null);
 
   const handleDownloadPdf = () => {
-// ...existing code...
+    if (resumeRef.current) {
+      html2canvas(resumeRef.current).then((canvas) => {
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF("p", "mm", "a4");
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+        pdf.save("resume.pdf");
+      });
+    }
+  };
+
+  const handleDownloadDocx = async () => {
+    if (generatedResume) {
+      const response = await fetch("/api/generate-docx", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ html: generatedResume }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        saveAs(blob, "resume.docx");
+      } else {
+        alert("Error generating .docx file.");
       }
     }
   };
