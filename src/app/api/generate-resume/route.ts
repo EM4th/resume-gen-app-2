@@ -64,18 +64,39 @@ async function getJobDescription(input: string): Promise<string> {
 }
 
 async function extractTextFromResume(file: File): Promise<string> {
-  const buffer = Buffer.from(await file.arrayBuffer());
-  if (file.type === "application/pdf") {
-    const data = await pdf(buffer);
-    return data.text;
-  } else if (
-    file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-    file.type === "application/msword"
-  ) {
-    const result = await mammoth.extractRawText({ buffer });
-    return result.value;
+  try {
+    console.log("Processing file:", {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    console.log("Buffer created, size:", buffer.length);
+
+    if (file.type === "application/pdf") {
+      console.log("Processing as PDF...");
+      const data = await pdf(buffer);
+      console.log("PDF parsed, text length:", data.text.length);
+      console.log("PDF text preview:", data.text.substring(0, 200));
+      return data.text;
+    } else if (
+      file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      file.type === "application/msword"
+    ) {
+      console.log("Processing as Word document...");
+      const result = await mammoth.extractRawText({ buffer });
+      console.log("Word document parsed, text length:", result.value.length);
+      console.log("Word text preview:", result.value.substring(0, 200));
+      return result.value;
+    } else {
+      console.log("Unsupported file type:", file.type);
+      throw new Error(`Unsupported file type: ${file.type}. Please upload a PDF or Word document.`);
+    }
+  } catch (error) {
+    console.error("Error extracting text from resume:", error);
+    throw new Error(`Failed to extract text from resume: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-  return "";
 }
 
 export async function POST(req: NextRequest) {
