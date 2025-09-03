@@ -3,19 +3,19 @@ import pdf from "pdf-parse";
 import mammoth from "mammoth";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import puppeteer from "puppeteer-core";
-import chromium from "chrome-aws-lambda";
+import chromium from "@sparticuz/chromium";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
 
 async function getJobDescription(url: string): Promise<string> {
   let browser = null;
   try {
-    const executablePath = await chromium.executablePath;
+    const executablePath = await chromium.executablePath();
 
     browser = await puppeteer.launch({
       args: chromium.args,
       executablePath,
-      headless: chromium.headless,
+      headless: true, // Use true for headless mode
     });
 
     const page = await browser.newPage();
