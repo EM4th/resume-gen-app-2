@@ -69,7 +69,7 @@ export default function ResumeDisplay({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div>
               <h3 className="text-xl font-bold mb-2">
-                AI's Enhancement Strategy
+                AI&apos;s Enhancement Strategy
               </h3>
               <div className="prose prose-sm max-w-none p-4 bg-base-200 rounded-lg">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
