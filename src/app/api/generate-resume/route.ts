@@ -103,14 +103,36 @@ export async function POST(req: NextRequest) {
       ${resumeText}
       ---
 
-      **Your Output (as a single block of HTML):**
+      **Your Output:**
+      You MUST return a single, valid JSON object with two keys: "explanation" and "resume".
+      - "explanation": A markdown-formatted string. In this string, first provide a brief, high-level summary of your strategy. Then, detail the key changes you made and, most importantly, *why* you made them, referencing the job description.
+      - "resume": A string containing the full, rewritten resume in clean, well-structured HTML.
+
+      **JSON Output Example:**
+      {
+        "explanation": "### Resume Enhancement Strategy\\nBased on the Frontend Engineer role, I focused on highlighting your React and UI/UX skills...",
+        "resume": "<html>...</html>"
+      }
+
+      **Job Description:**
+      ---
+      ${jobDescription}
+      ---
+
+      **Original Resume Text:**
+      ---
+      ${resumeText}
+      ---
     `;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const generatedResume = response.text();
+    
+    // Clean the response to ensure it's valid JSON
+    const text = response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+    const data = JSON.parse(text);
 
-    return NextResponse.json({ resume: generatedResume });
+    return NextResponse.json(data);
   } catch (error) {
     console.error(error);
     return NextResponse.json(

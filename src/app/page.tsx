@@ -12,6 +12,7 @@ export default function Home() {
   const [jobUrl, setJobUrl] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [generatedResume, setGeneratedResume] = useState("");
+  const [explanation, setExplanation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,6 +29,7 @@ export default function Home() {
     }
     setIsLoading(true);
     setGeneratedResume("");
+    setExplanation("");
 
     const formData = new FormData();
     formData.append("jobUrl", jobUrl);
@@ -42,6 +44,7 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         setGeneratedResume(data.resume);
+        setExplanation(data.explanation);
       } else {
         console.error("Error generating resume");
         alert("There was an error generating your resume. Please try again.");
@@ -69,10 +72,10 @@ export default function Home() {
           </p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="card bg-base-100 shadow-xl">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="card bg-base-100 shadow-xl md:col-span-1">
             <div className="card-body">
-              <h2 className="card-title">Create Your Perfect Resume</h2>
+              <h2 className="card-title text-2xl">Your Info</h2>
               <form onSubmit={handleSubmit}>
                 <div className="form-control w-full mb-4">
                   <label className="label">
@@ -93,7 +96,7 @@ export default function Home() {
                   </label>
                   <input
                     type="file"
-                    className="file-input file-input-bordered w-full"
+                    className="file-input file-input-bordered file-input-primary w-full"
                     onChange={handleFileChange}
                     accept=".pdf,.doc,.docx"
                     required
@@ -101,7 +104,7 @@ export default function Home() {
                 </div>
                 <button
                   type="submit"
-                  className="btn btn-primary w-full"
+                  className="btn btn-primary btn-lg w-full"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -116,10 +119,11 @@ export default function Home() {
 
           <ResumeDisplay
             generatedResume={generatedResume}
+            explanation={explanation}
             isLoading={isLoading}
           />
         </div>
-        <footer className="text-center mt-8 text-gray-500">
+        <footer className="text-center mt-12 mb-4 text-gray-500">
           <p>
             Monetized with{" "}
             <a
