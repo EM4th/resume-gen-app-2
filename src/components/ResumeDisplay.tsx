@@ -4,7 +4,6 @@ import { useRef } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
-import htmlToDocx from "html-to-docx";
 
 interface ResumeDisplayProps {
   generatedResume: string;
@@ -32,12 +31,20 @@ export default function ResumeDisplay({
 
   const handleDownloadDocx = async () => {
     if (generatedResume) {
-      const fileBuffer = await htmlToDocx(generatedResume, undefined, {
-        table: { row: { cantSplit: true } },
-        footer: true,
-        pageNumber: true,
+      const response = await fetch("/api/generate-docx", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ html: generatedResume }),
       });
-      saveAs(fileBuffer as Blob, "resume.docx");
+
+      if (response.ok) {
+        const blob = await response.blob();
+        saveAs(blob, "resume.docx");
+      } else {
+        alert("Error generating .docx file.");
+      }
     }
   };
 
