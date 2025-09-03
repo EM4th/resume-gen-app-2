@@ -4,6 +4,7 @@ import { useState } from "react";
 import Script from "next/script";
 import dynamic from "next/dynamic";
 
+// Force redeploy with new design
 const ResumeDisplay = dynamic(() => import("../components/ResumeDisplay"), {
   ssr: false,
 });
