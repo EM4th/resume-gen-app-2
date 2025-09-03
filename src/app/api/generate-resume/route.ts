@@ -7,36 +7,54 @@ import chromium from "@sparticuz/chromium";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
 
-async function getJobDescription(url: string): Promise<string> {
+async function getJobDescription(input: string): Promise<string> {
+  // Check if input is a URL or plain text
+  const isUrl = input.startsWith('http://') || input.startsWith('https://') || input.includes('www.');
+  
+  if (!isUrl) {
+    // If it's not a URL, treat it as plain text job description
+    console.log("Input detected as plain text job description");
+    return input;
+  }
+
+  // If it's a URL, try to scrape it
   let browser = null;
   try {
+    console.log("Attempting to scrape URL:", input);
     const executablePath = await chromium.executablePath();
 
     browser = await puppeteer.launch({
       args: chromium.args,
       executablePath,
-      headless: true, // Use true for headless mode
+      headless: true,
     });
 
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "networkidle2" });
+    await page.goto(input, { waitUntil: "networkidle2", timeout: 30000 });
 
     // Extract text from the body of the page
     const jobDescription = await page.evaluate(() => document.body.innerText);
+    console.log("Successfully scraped job description, length:", jobDescription.length);
     
     return jobDescription;
   } catch (error) {
     console.error("Error fetching job description with Puppeteer:", error);
     // Fallback to basic fetch
     try {
-        const response = await fetch(url);
+        console.log("Trying fallback fetch method for URL:", input);
+        const response = await fetch(input);
         const text = await response.text();
-        // This is a very naive way to get content. A real implementation needs a proper scraper.
-        const jobDescription = text.substring(text.indexOf("<body"), text.indexOf("</body>"));
-        return jobDescription;
+        // Extract text content from HTML
+        const htmlContent = text.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                               .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+                               .replace(/<[^>]*>/g, ' ')
+                               .replace(/\s+/g, ' ')
+                               .trim();
+        console.log("Fallback fetch successful, content length:", htmlContent.length);
+        return htmlContent;
     } catch (fetchError) {
         console.error("Error fetching job description with basic fetch:", fetchError);
-        throw new Error("Could not fetch job description from URL.");
+        throw new Error("Could not fetch job description from URL. Please paste the job description text directly instead.");
     }
   } finally {
     if (browser) {
@@ -62,22 +80,37 @@ async function extractTextFromResume(file: File): Promise<string> {
 
 export async function POST(req: NextRequest) {
   try {
+    console.log("Resume generation request received");
     const formData = await req.formData();
     const jobUrl = formData.get("jobUrl") as string | null;
     const resumeFile = formData.get("resume") as File | null;
 
     if (!jobUrl || !resumeFile) {
+      console.error("Missing required fields:", { jobUrl: !!jobUrl, resumeFile: !!resumeFile });
       return NextResponse.json(
         { error: "Missing jobUrl or resume file" },
         { status: 400 }
       );
     }
 
+    console.log("Processing job description and resume...");
     const [jobDescription, resumeText] = await Promise.all([
       getJobDescription(jobUrl),
       extractTextFromResume(resumeFile),
     ]);
 
+    console.log("Job description length:", jobDescription.length);
+    console.log("Resume text length:", resumeText.length);
+
+    if (!process.env.GOOGLE_GEMINI_API_KEY) {
+      console.error("Google Gemini API key not found");
+      return NextResponse.json(
+        { error: "API configuration error" },
+        { status: 500 }
+      );
+    }
+
+    console.log("Calling Gemini AI...");
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `
@@ -93,26 +126,10 @@ export async function POST(req: NextRequest) {
       5.  **Maintain Professional Formatting:** The final output must be a complete resume in clean, well-structured HTML. Preserve the original resume's core structure (e.g., sections for Work Experience, Education, Skills) but enhance the content dramatically.
       6.  **Remove Irrelevant Information:** Eliminate any experience or skills from the original resume that are not relevant to the target job.
 
-      **Job Description:**
-      ---
-      ${jobDescription}
-      ---
-
-      **Original Resume Text:**
-      ---
-      ${resumeText}
-      ---
-
       **Your Output:**
       You MUST return a single, valid JSON object with two keys: "explanation" and "resume".
       - "explanation": A markdown-formatted string. In this string, first provide a brief, high-level summary of your strategy. Then, detail the key changes you made and, most importantly, *why* you made them, referencing the job description.
       - "resume": A string containing the full, rewritten resume in clean, well-structured HTML.
-
-      **JSON Output Example:**
-      {
-        "explanation": "### Resume Enhancement Strategy\\nBased on the Frontend Engineer role, I focused on highlighting your React and UI/UX skills...",
-        "resume": "<html>...</html>"
-      }
 
       **Job Description:**
       ---
@@ -128,15 +145,38 @@ export async function POST(req: NextRequest) {
     const result = await model.generateContent(prompt);
     const response = await result.response;
     
+    console.log("Gemini AI response received");
+    
     // Clean the response to ensure it's valid JSON
     const text = response.text().replace(/```json/g, "").replace(/```/g, "").trim();
-    const data = JSON.parse(text);
+    
+    let data;
+    try {
+      data = JSON.parse(text);
+      console.log("Successfully parsed AI response");
+    } catch (parseError) {
+      console.error("Failed to parse AI response as JSON:", parseError);
+      console.error("Raw response:", text.substring(0, 500));
+      return NextResponse.json(
+        { error: "AI response format error. Please try again." },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error(error);
+    console.error("Resume generation error:", error);
+    
+    // Return more specific error messages
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "An unexpected error occurred. Please try again." },
       { status: 500 }
     );
   }
