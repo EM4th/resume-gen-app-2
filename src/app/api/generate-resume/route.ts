@@ -81,70 +81,101 @@ async function extractTextFromResume(file: File): Promise<string> {
 export async function POST(req: NextRequest) {
   try {
     console.log("Resume generation request received");
+    
+    // Check environment variables first
+    if (!process.env.GOOGLE_GEMINI_API_KEY) {
+      console.error("GOOGLE_GEMINI_API_KEY not found in environment");
+      return NextResponse.json(
+        { error: "API configuration error: Missing API key" },
+        { status: 500 }
+      );
+    }
+
     const formData = await req.formData();
     const jobUrl = formData.get("jobUrl") as string | null;
     const resumeFile = formData.get("resume") as File | null;
 
+    console.log("Form data received:", { 
+      hasJobUrl: !!jobUrl, 
+      hasResumeFile: !!resumeFile,
+      jobUrlLength: jobUrl?.length || 0,
+      resumeFileName: resumeFile?.name || 'none'
+    });
+
     if (!jobUrl || !resumeFile) {
       console.error("Missing required fields:", { jobUrl: !!jobUrl, resumeFile: !!resumeFile });
       return NextResponse.json(
-        { error: "Missing jobUrl or resume file" },
+        { error: "Missing job description or resume file" },
         { status: 400 }
       );
     }
 
     console.log("Processing job description and resume...");
-    const [jobDescription, resumeText] = await Promise.all([
-      getJobDescription(jobUrl),
-      extractTextFromResume(resumeFile),
-    ]);
+    
+    let jobDescription: string;
+    let resumeText: string;
+    
+    try {
+      [jobDescription, resumeText] = await Promise.all([
+        getJobDescription(jobUrl),
+        extractTextFromResume(resumeFile),
+      ]);
+    } catch (processingError) {
+      console.error("Error processing inputs:", processingError);
+      return NextResponse.json(
+        { error: `Processing error: ${processingError instanceof Error ? processingError.message : 'Unknown error'}` },
+        { status: 500 }
+      );
+    }
 
     console.log("Job description length:", jobDescription.length);
     console.log("Resume text length:", resumeText.length);
 
-    if (!process.env.GOOGLE_GEMINI_API_KEY) {
-      console.error("Google Gemini API key not found");
+    if (jobDescription.length < 10) {
       return NextResponse.json(
-        { error: "API configuration error" },
-        { status: 500 }
+        { error: "Job description too short or could not be extracted" },
+        { status: 400 }
+      );
+    }
+
+    if (resumeText.length < 10) {
+      return NextResponse.json(
+        { error: "Resume text too short or could not be extracted" },
+        { status: 400 }
       );
     }
 
     console.log("Calling Gemini AI...");
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-    const prompt = `
-      You are a world-class career coach and expert resume writer with a deep understanding of HR and recruitment practices.
-      Your task is to completely rewrite the provided resume to make it the perfect application for the given job description.
-      Be aggressive and strategic in your changes.
+    const prompt = `You are a world-class career coach and expert resume writer. Rewrite the provided resume to perfectly match the job description.
 
-      **Key Instructions:**
-      1.  **Mirror the Job Description:** Analyze the job description for key skills, technologies, and qualifications. Rewrite the resume to highlight these, using the same language where appropriate.
-      2.  **Aggressively Tailor Content:** Change job titles, job descriptions, and skill lists to directly match what the employer is looking for. If the resume has a "Software Developer" role and the job is for a "Frontend Engineer," change the title and tailor the description accordingly.
-      3.  **Quantify Achievements:** Rephrase responsibilities as quantifiable achievements. Instead of "Wrote code," use "Developed a new feature that increased user engagement by 15%."
-      4.  **Optimize for ATS (Applicant Tracking Systems):** Ensure the resume is rich with keywords from the job description to pass through automated screening systems.
-      5.  **Maintain Professional Formatting:** The final output must be a complete resume in clean, well-structured HTML. Preserve the original resume's core structure (e.g., sections for Work Experience, Education, Skills) but enhance the content dramatically.
-      6.  **Remove Irrelevant Information:** Eliminate any experience or skills from the original resume that are not relevant to the target job.
+**Job Description:**
+${jobDescription}
 
-      **Your Output:**
-      You MUST return a single, valid JSON object with two keys: "explanation" and "resume".
-      - "explanation": A markdown-formatted string. In this string, first provide a brief, high-level summary of your strategy. Then, detail the key changes you made and, most importantly, *why* you made them, referencing the job description.
-      - "resume": A string containing the full, rewritten resume in clean, well-structured HTML.
+**Resume:**
+${resumeText}
 
-      **Job Description:**
-      ---
-      ${jobDescription}
-      ---
+**Instructions:**
+Return ONLY a valid JSON object with exactly two keys:
+- "explanation": Brief markdown explanation of your strategy
+- "resume": Complete rewritten resume in clean HTML
 
-      **Original Resume Text:**
-      ---
-      ${resumeText}
-      ---
-    `;
+Example:
+{"explanation": "### Strategy\\nI focused on...", "resume": "<div>...</div>"}`;
 
-    const result = await model.generateContent(prompt);
+    let result;
+    try {
+      result = await model.generateContent(prompt);
+    } catch (aiError) {
+      console.error("Gemini AI error:", aiError);
+      return NextResponse.json(
+        { error: `AI service error: ${aiError instanceof Error ? aiError.message : 'Unknown AI error'}` },
+        { status: 500 }
+      );
+    }
+
     const response = await result.response;
-    
     console.log("Gemini AI response received");
     
     // Clean the response to ensure it's valid JSON
@@ -156,27 +187,30 @@ export async function POST(req: NextRequest) {
       console.log("Successfully parsed AI response");
     } catch (parseError) {
       console.error("Failed to parse AI response as JSON:", parseError);
-      console.error("Raw response:", text.substring(0, 500));
+      console.error("Raw response first 500 chars:", text.substring(0, 500));
       return NextResponse.json(
-        { error: "AI response format error. Please try again." },
+        { error: "AI response parsing error. Please try again." },
+        { status: 500 }
+      );
+    }
+
+    if (!data.explanation || !data.resume) {
+      console.error("AI response missing required fields:", Object.keys(data));
+      return NextResponse.json(
+        { error: "AI response format error. Missing explanation or resume." },
         { status: 500 }
       );
     }
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Resume generation error:", error);
-    
-    // Return more specific error messages
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
-    }
+    console.error("Unexpected error in resume generation:", error);
     
     return NextResponse.json(
-      { error: "An unexpected error occurred. Please try again." },
+      { 
+        error: `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     );
   }
