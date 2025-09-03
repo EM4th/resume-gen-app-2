@@ -164,9 +164,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (resumeText.length < 10) {
+    if (resumeText.length < 50) {
       return NextResponse.json(
-        { error: "Resume text too short or could not be extracted" },
+        { error: `Resume text too short (${resumeText.length} characters). Extracted text: "${resumeText.substring(0, 100)}"` },
         { status: 400 }
       );
     }
