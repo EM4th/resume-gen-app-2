@@ -110,27 +110,68 @@ GOOGLE_GEMINI_API_KEY=AIzaSyAl9w2qaTffDcuXuo6jxlAU8nV-6-Sa-eg
 - `54a7d55`: fix: Improve error handling and support both URL and text job descriptions  
 - `2547b71`: feat: Complete design overhaul to match modern mobile-first UI
 
-## 🎯 FEATURES IMPLEMENTED
+## 🚨 CURRENT STATUS & NEXT FEATURES TO IMPLEMENT
+
+### ✅ RECENTLY FIXED (September 4, 2025)
+- **Gemini Model Issue**: Fixed deprecated `gemini-pro` model → updated to `gemini-1.5-flash`
+- **Enhanced AI Prompts**: Updated to preserve original resume formatting and style
+- **Professional Output**: Focus on maintaining visual hierarchy and submission-ready appearance
+
+### 🔧 NEXT PRIORITY FEATURE - PDF Preview & Download
+**User Request**: "I want the preview to be in a PDF preview window and then once the preview is viewed the format for download should be offered as a PDF or word doc"
+
+**Implementation Plan:**
+1. **PDF Preview Window**: 
+   - Replace current HTML preview with embedded PDF viewer
+   - Generate PDF on-the-fly for immediate preview
+   - Use iframe or PDF.js for in-browser PDF viewing
+
+2. **Download Options Post-Preview**:
+   - Show download buttons only after preview is displayed
+   - Offer both PDF and Word document formats
+   - Use existing download functionality (jspdf + html-to-docx)
+
+**Technical Implementation:**
+- Update `ResumeDisplay.tsx` to generate PDF immediately after AI response
+- Add PDF viewer component (iframe or react-pdf)
+- Move download buttons to appear after preview interaction
+- Maintain current PDF/Word generation logic
+
+### 🎯 FEATURES IMPLEMENTED
 
 ### ✅ Working Features
 - Beautiful responsive UI with gradient design
 - File upload (PDF/Word resume parsing)
 - Form validation and state management
+- AI resume generation with Gemini 1.5 Flash
+- Enhanced prompts for format preservation
 - Download buttons (PDF/Word export)
 - Modern loading states and animations
 
-### ❌ Needs Debugging
-- AI resume generation (500 error)
-- Job posting scraping (LinkedIn blocking)
-- Gemini AI integration (environment variable issue)
+### 🚧 NEEDS IMPLEMENTATION
+- PDF preview window for immediate viewing
+- Progressive download options (show after preview)
+- Enhanced PDF viewer integration
 
 ## 🚀 WHEN RESUMING WORK
 
-1. **First**: Check `/api/test` endpoint for environment variables
-2. **Second**: Add missing env vars to Vercel if needed
-3. **Third**: Test with plain text job description (bypass scraping)
-4. **Fourth**: Debug specific API errors with enhanced logging
-5. **Fifth**: Implement alternative scraping methods if needed
+### 🎯 PRIORITY 1: PDF Preview Implementation
+1. **Install PDF viewer library**: `npm install react-pdf` or use PDF.js
+2. **Create PDF generation endpoint**: Generate PDF immediately after AI response
+3. **Update ResumeDisplay component**: Replace HTML preview with PDF viewer
+4. **Implement progressive UI**: Show download options only after preview interaction
+
+### 🔧 PRIORITY 2: Current Functionality
+1. **Test current AI generation**: Should now work with gemini-1.5-flash model
+2. **Verify formatting preservation**: Check if original resume style is maintained
+3. **Test file upload**: Ensure .pdf and .docx files process correctly
+4. **Optimize prompts**: Fine-tune AI instructions for better format matching
+
+### 📋 PRIORITY 3: Enhancement Features
+1. **Alternative job board scraping**: Replace LinkedIn scraping with other sources
+2. **Rate limiting**: Implement API request limits
+3. **User feedback**: Add rating system for generated resumes
+4. **Template options**: Multiple resume formatting styles
 
 ## 📞 INTEGRATION STATUS
 - **Google AdSense**: ✅ Integrated with client ID
@@ -139,5 +180,5 @@ GOOGLE_GEMINI_API_KEY=AIzaSyAl9w2qaTffDcuXuo6jxlAU8nV-6-Sa-eg
 - **Vercel**: ✅ Hosting configured (just needs env vars)
 
 ---
-*Last Updated: September 3, 2025*
-*Status: Beautiful UI complete, API debugging in progress*
+*Last Updated: September 4, 2025*
+*Status: AI functionality fixed, PDF preview feature requested for next implementation*
