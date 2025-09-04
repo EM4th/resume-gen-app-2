@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log("Calling Gemini AI...");
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `You are a world-class career coach and expert resume writer. Rewrite the provided resume to perfectly match the job description.
 

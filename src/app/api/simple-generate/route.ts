@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log("Calling Gemini AI...");
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `You are a career coach. Rewrite this resume to match the job description.
 
