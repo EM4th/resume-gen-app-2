@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import PDFViewer from "./PDFViewer";
 
 interface ResumeDisplayProps {
   generatedResume: string;
@@ -19,17 +20,83 @@ export default function ResumeDisplay({
   isLoading,
 }: ResumeDisplayProps) {
   const resumeRef = useRef<HTMLDivElement>(null);
+  const [pdfData, setPdfData] = useState<string | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  // Generate PDF when resume content is available
+  useEffect(() => {
+    if (generatedResume && !pdfData && !isGeneratingPdf) {
+      generatePdfPreview();
+    }
+  }, [generatedResume, pdfData, isGeneratingPdf]);
+
+  const generatePdfPreview = async () => {
+    if (!generatedResume || !resumeRef.current) return;
+    
+    setIsGeneratingPdf(true);
+    try {
+      // Create a temporary element with A4 dimensions
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = generatedResume;
+      tempDiv.style.width = '210mm';
+      tempDiv.style.minHeight = '297mm';
+      tempDiv.style.padding = '20mm';
+      tempDiv.style.backgroundColor = 'white';
+      tempDiv.style.fontFamily = 'Arial, sans-serif';
+      tempDiv.style.fontSize = '12px';
+      tempDiv.style.lineHeight = '1.4';
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.top = '0';
+      
+      document.body.appendChild(tempDiv);
+
+      // Convert to canvas with high quality
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: 794, // 210mm at 96dpi
+        height: 1123, // 297mm at 96dpi
+      });
+
+      // Remove temp element
+      document.body.removeChild(tempDiv);
+
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+
+      // Convert to base64 data URL for the PDF viewer
+      const pdfDataUrl = pdf.output('datauristring');
+      setPdfData(pdfDataUrl);
+
+    } catch (error) {
+      console.error('PDF generation error:', error);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   const handleDownloadPdf = () => {
-    if (resumeRef.current) {
-      html2canvas(resumeRef.current).then((canvas) => {
-        const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF("p", "mm", "a4");
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-        pdf.save("resume.pdf");
-      });
+    if (pdfData) {
+      // Extract base64 data and create blob
+      const base64Data = pdfData.split(',')[1];
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      saveAs(blob, 'resume.pdf');
     }
   };
 
@@ -71,39 +138,41 @@ export default function ResumeDisplay({
         </div>
       )}
 
-      {/* Resume Preview Card */}
+      {/* Resume PDF Preview */}
       {generatedResume && (
-        <div className="bg-white rounded-3xl p-6 shadow-xl">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="text-2xl">📄</div>
-              <h3 className="text-xl font-bold text-gray-800">Enhanced Resume</h3>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleDownloadPdf}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-              >
-                📄 PDF
-              </button>
-              <button
-                onClick={handleDownloadDocx}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-              >
-                📝 Word
-              </button>
-            </div>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="text-2xl">📄</div>
+            <h3 className="text-xl font-bold text-white">Your Customized Resume is Ready!</h3>
           </div>
           
-          <div className="bg-gray-50 rounded-2xl p-4 max-h-96 overflow-y-auto">
+          {isGeneratingPdf ? (
+            <div className="bg-white rounded-3xl p-8 shadow-xl text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+              <p className="text-gray-600 font-medium">
+                Generating PDF preview...
+              </p>
+            </div>
+          ) : pdfData ? (
+            <PDFViewer 
+              pdfData={pdfData}
+              onDownloadPdf={handleDownloadPdf}
+              onDownloadDocx={handleDownloadDocx}
+            />
+          ) : null}
+          
+          {/* Hidden div for PDF generation */}
+          <div style={{ position: 'absolute', left: '-9999px', top: '0' }}>
             <div
               ref={resumeRef}
-              className="bg-white p-8 rounded-lg shadow-sm text-sm leading-relaxed"
               style={{ 
+                width: '210mm',
+                minHeight: '297mm',
+                padding: '20mm',
+                backgroundColor: 'white',
                 fontFamily: 'Arial, sans-serif',
-                maxWidth: '210mm', // A4 width
-                minHeight: '297mm', // A4 height
-                margin: '0 auto'
+                fontSize: '12px',
+                lineHeight: '1.4'
               }}
               dangerouslySetInnerHTML={{ __html: generatedResume }}
             />

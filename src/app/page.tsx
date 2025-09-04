@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Script from "next/script";
 import dynamic from "next/dynamic";
+import AdSense from "../components/AdSense";
 
 // Force redeploy with new design
 const ResumeDisplay = dynamic(() => import("../components/ResumeDisplay"), {
@@ -61,11 +61,6 @@ export default function Home() {
 
   return (
     <>
-      <Script
-        async
-        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7524647518323966"
-        crossOrigin="anonymous"
-      />
       <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-800">
         <div className="container mx-auto p-4 flex items-center justify-center min-h-screen">
           <div className="w-full max-w-md">
@@ -78,6 +73,20 @@ export default function Home() {
               <p className="text-white/80 text-lg">
                 Transform your resume with AI to match any job description perfectly
               </p>
+            </div>
+
+            {/* Header Ad - Real AdSense */}
+            <div className="mb-6">
+              <AdSense 
+                adSlot="3104022820" 
+                adFormat="auto"
+                className="header-ad"
+                style={{ 
+                  display: 'block', 
+                  textAlign: 'center', 
+                  minHeight: '200px'
+                }}
+              />
             </div>
 
             {/* Main Form Card */}
@@ -116,6 +125,16 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Ad placement after file upload section */}
+                <div className="my-6">
+                  <AdSense 
+                    adSlot="9830843584" 
+                    adFormat="auto"
+                    className="text-center"
+                    style={{ display: 'block', textAlign: 'center', minHeight: '250px' }}
+                  />
                 </div>
 
                 <div>
@@ -172,8 +191,44 @@ export default function Home() {
                   explanation={explanation}
                   isLoading={isLoading}
                 />
+                
+                {/* Ad placement after results */}
+                <div className="mt-8">
+                  <AdSense 
+                    adSlot="RESULTS_AD_UNIT_ID" 
+                    adFormat="auto"
+                    className="text-center"
+                    style={{ display: 'block', textAlign: 'center', minHeight: '300px' }}
+                  />
+                </div>
               </div>
             )}
+
+            {/* Bottom banner ad for all users */}
+            <div className="mt-8 mb-4">
+              <AdSense 
+                adSlot="5211311414" 
+                adFormat="auto"
+                className="text-center"
+                style={{ display: 'block', textAlign: 'center', minHeight: '100px' }}
+              />
+            </div>
+
+            {/* Footer */}
+            <div className="mt-8 text-center">
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 border border-white/20">
+                <p className="text-white/80 text-sm">
+                  <a 
+                    href="/privacy" 
+                    className="hover:text-white transition-colors underline"
+                  >
+                    Privacy Policy
+                  </a>
+                  {" | "}
+                  <span>© 2025 AI Resume Generator</span>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
