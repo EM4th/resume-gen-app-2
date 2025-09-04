@@ -225,6 +225,13 @@ export default function Home() {
                     Privacy Policy
                   </a>
                   {" | "}
+                  <a 
+                    href="/terms" 
+                    className="hover:text-white transition-colors underline"
+                  >
+                    Terms of Service
+                  </a>
+                  {" | "}
                   <span>© 2025 AI Resume Generator</span>
                 </p>
               </div>
