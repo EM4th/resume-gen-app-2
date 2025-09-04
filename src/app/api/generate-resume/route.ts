@@ -184,21 +184,41 @@ export async function POST(req: NextRequest) {
     console.log("Calling Gemini AI...");
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const prompt = `You are a world-class career coach and expert resume writer. Rewrite the provided resume to perfectly match the job description.
+    const prompt = `You are a world-class career coach and expert resume writer. Your task is to rewrite the provided resume to perfectly match the job description while PRESERVING the original formatting, style, and structure.
+
+**CRITICAL FORMATTING REQUIREMENTS:**
+1. **Preserve Original Style**: Maintain the exact same visual structure, headings, and layout as the original resume
+2. **Keep Same Length**: Do not exceed the original resume's length (same number of pages/sections)
+3. **Match Professional Formatting**: Preserve fonts, spacing, bullet points, and visual hierarchy
+4. **Maintain Color Scheme**: Keep any existing color schemes or styling elements
+5. **Professional Presentation**: Ensure the output is immediately ready for job submission
+
+**CONTENT OPTIMIZATION STRATEGY:**
+- Mirror key skills and technologies from the job description
+- Rewrite job responsibilities to highlight relevant experience
+- Quantify achievements where possible (add metrics and numbers)
+- Use exact keywords from the job posting for ATS optimization
+- Remove or de-emphasize irrelevant experience
+- Adjust job titles and descriptions to match the target role
 
 **Job Description:**
 ${jobDescription}
 
-**Resume:**
+**Original Resume:**
 ${resumeText}
 
-**Instructions:**
-Return ONLY a valid JSON object with exactly two keys:
-- "explanation": Brief markdown explanation of your strategy
-- "resume": Complete rewritten resume in clean HTML
+**OUTPUT REQUIREMENTS:**
+Return a JSON object with exactly these two keys:
+- "explanation": A markdown-formatted strategy explanation (2-3 paragraphs max)
+- "resume": Complete enhanced resume in clean HTML that preserves the original's visual style
 
-Example:
-{"explanation": "### Strategy\\nI focused on...", "resume": "<div>...</div>"}`;
+**IMPORTANT**: The HTML should maintain the same professional appearance, section structure, and visual hierarchy as the original resume. Focus on content enhancement while preserving the proven formatting that makes the resume look professional and submission-ready.
+
+Example output:
+{
+  "explanation": "### Resume Enhancement Strategy\\n\\nI focused on highlighting your React and JavaScript experience to match the Frontend Developer role requirements. I quantified your achievements and emphasized modern web development skills.\\n\\nKey changes include repositioning your technical skills section, adding specific metrics to your project descriptions, and aligning your job titles with the target role's requirements.",
+  "resume": "<div style='font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; line-height: 1.6;'><!-- Enhanced resume with preserved formatting --></div>"
+}`;
 
     let result;
     try {

@@ -98,7 +98,13 @@ export default function ResumeDisplay({
           <div className="bg-gray-50 rounded-2xl p-4 max-h-96 overflow-y-auto">
             <div
               ref={resumeRef}
-              className="bg-white p-6 rounded-lg shadow-sm text-sm"
+              className="bg-white p-8 rounded-lg shadow-sm text-sm leading-relaxed"
+              style={{ 
+                fontFamily: 'Arial, sans-serif',
+                maxWidth: '210mm', // A4 width
+                minHeight: '297mm', // A4 height
+                margin: '0 auto'
+              }}
               dangerouslySetInnerHTML={{ __html: generatedResume }}
             />
           </div>

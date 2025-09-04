@@ -46,19 +46,33 @@ export async function POST(req: NextRequest) {
     console.log("Calling Gemini AI...");
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const prompt = `You are a career coach. Rewrite this resume to match the job description.
+    const prompt = `You are a professional resume writer. Enhance this resume to match the job requirements while preserving its professional formatting and structure.
 
-Job Description:
+**FORMATTING REQUIREMENTS:**
+- Maintain the original resume's structure and visual hierarchy
+- Preserve professional formatting, fonts, and spacing
+- Keep the same length and section organization
+- Ensure submission-ready professional appearance
+
+**CONTENT STRATEGY:**
+- Highlight relevant skills and experience for the target role
+- Use keywords from the job description for ATS optimization
+- Quantify achievements with specific metrics
+- Tailor job descriptions to match the role requirements
+
+**Job Description:**
 ${jobDescription}
 
-Current Resume:
+**Current Resume:**
 ${resumeText}
 
-Return a JSON object with:
-- "explanation": Brief explanation of changes made
-- "resume": Enhanced resume in HTML format
+Return JSON format:
+{
+  "explanation": "Brief strategy explanation in markdown",
+  "resume": "Enhanced resume in professional HTML format"
+}
 
-Example: {"explanation": "I focused on highlighting React skills...", "resume": "<div>Enhanced resume content...</div>"}`;
+Focus on content enhancement while maintaining the proven professional formatting.`;
 
     let result;
     try {
