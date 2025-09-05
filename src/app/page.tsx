@@ -1,5 +1,6 @@
 "use client";
 
+// Force redeploy - Sept 5, 2025
 import { useState } from "react";
 import AdSense from "../components/AdSense";
 
