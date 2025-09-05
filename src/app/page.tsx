@@ -7,8 +7,6 @@ import AdSense from "../components/AdSense";
 export default function Home() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [jobUrl, setJobUrl] = useState<string>("");
-  const [generatedResume, setGeneratedResume] = useState("");
-  const [explanation, setExplanation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,8 +22,6 @@ export default function Home() {
       return;
     }
     setIsLoading(true);
-    setGeneratedResume("");
-    setExplanation("");
 
     const formData = new FormData();
     formData.append("jobUrl", jobUrl);
