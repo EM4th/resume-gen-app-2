@@ -89,35 +89,16 @@ export default function Home() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-gray-700 font-semibold mb-3 text-lg">
-                    Upload Your Resume (PDF):
+                    Upload Your Resume:
                   </label>
-                  <div className="relative">
+                  <div className="flex items-center gap-3">
                     <input
                       type="file"
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      className="flex-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer cursor-pointer"
                       onChange={handleFileChange}
                       accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                       required
                     />
-                    <div className="border-2 border-gray-300 border-dashed rounded-2xl p-4 text-center hover:border-blue-400 transition-colors">
-                      <div className="text-gray-500 flex items-center justify-center">
-                        {resumeFile ? (
-                          <span className="text-blue-600 font-medium">
-                            📄 {resumeFile.name}
-                          </span>
-                        ) : (
-                          <>
-                            <button
-                              type="button"
-                              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                              Choose File
-                            </button>
-                            <span className="ml-2 text-gray-500">No file chosen</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 </div>
 
