@@ -3,6 +3,14 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
 
+export async function GET() {
+  return NextResponse.json({
+    status: "Minimal API v2.0 is running",
+    timestamp: new Date().toISOString(),
+    message: "This is the NEW minimal API endpoint"
+  });
+}
+
 async function scrapeJobDescription(url: string): Promise<string> {
   try {
     console.log("Attempting to scrape URL:", url);
@@ -421,8 +429,7 @@ ${resumeText.split('\n').map(line => line.trim()).filter(line => line.length > 0
     };
     
     console.log("Final response keys:", Object.keys(finalResponse));
-    console.log("API Version: minimal-v2.0 - DEPLOYMENT TEST");
-    console.log("=== NEW MINIMAL API IS RUNNING ===");
+    console.log("API Version: minimal-v2.0");
     return NextResponse.json(finalResponse);
   } catch (error) {
     console.error("=== UNEXPECTED ERROR IN MINIMAL RESUME GENERATION ===");
