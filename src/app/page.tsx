@@ -99,19 +99,9 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Ad placement after file upload section */}
-                <div className="my-6">
-                  <AdSense 
-                    adSlot="9830843584" 
-                    adFormat="auto"
-                    className="text-center"
-                    style={{ display: 'block', textAlign: 'center', minHeight: '250px' }}
-                  />
-                </div>
-
                 <div>
                   <label className="block text-gray-700 font-semibold mb-3 text-lg">
-                    Job Description (URL or Text):
+                    Job Post Url:
                   </label>
                   <textarea
                     placeholder="Paste job description text or enter a job posting URL..."
@@ -119,6 +109,16 @@ export default function Home() {
                     value={jobUrl}
                     onChange={(e) => setJobUrl(e.target.value)}
                     required
+                  />
+                </div>
+
+                {/* Ad placement after job description section */}
+                <div className="my-6">
+                  <AdSense 
+                    adSlot="9830843584" 
+                    adFormat="auto"
+                    className="text-center"
+                    style={{ display: 'block', textAlign: 'center', minHeight: '250px' }}
                   />
                 </div>
 
