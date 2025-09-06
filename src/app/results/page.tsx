@@ -224,16 +224,31 @@ function ResultsContent() {
             />
           </div>
 
-          {/* Resume PDF Preview */}
+          {/* Resume Content Preview - ACTUAL READABLE PREVIEW */}
           {generatedResume && (
             <div className="space-y-4 mb-6">
               <div className="flex items-center gap-3">
                 <div className="text-2xl">📄</div>
-                <h3 className="text-xl font-bold text-white">Your Enhanced Resume is Ready!</h3>
+                <h3 className="text-xl font-bold text-white">Your Enhanced Resume Preview</h3>
               </div>
               
-              {/* PDF Preview Window */}
+              {/* HTML Content Preview - Main Preview */}
+              <div className="bg-white rounded-3xl p-8 shadow-xl">
+                <div 
+                  className="resume-preview-content"
+                  dangerouslySetInnerHTML={{ __html: generatedResume }}
+                  style={{
+                    maxWidth: '100%',
+                    fontSize: '14px',
+                    lineHeight: '1.5',
+                    fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif'
+                  }}
+                />
+              </div>
+              
+              {/* PDF Preview Window - Secondary */}
               <div className="bg-white rounded-3xl p-6 shadow-xl">
+                <h4 className="text-lg font-bold text-gray-800 mb-4">📱 Mobile PDF Preview</h4>
                 {isGeneratingPdf ? (
                   <div className="flex items-center justify-center py-20">
                     <div className="text-center">
@@ -245,13 +260,13 @@ function ResultsContent() {
                   <div className="w-full">
                     <iframe
                       src={pdfUrl}
-                      className="w-full h-[800px] border-0 rounded-lg shadow-inner"
+                      className="w-full h-[600px] border-0 rounded-lg shadow-inner"
                       title="Resume PDF Preview"
                     />
                   </div>
                 ) : (
                   <div className="flex items-center justify-center py-20">
-                    <p className="text-gray-600">Error generating PDF preview</p>
+                    <p className="text-gray-600">PDF preview will appear here after generation</p>
                   </div>
                 )}
               </div>
