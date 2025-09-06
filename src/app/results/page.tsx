@@ -1,31 +1,19 @@
 "use client";
 
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import AdSense from '../../components/AdSense';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import dynamic from 'next/dynamic';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { saveAs } from 'file-saver';
-
-// Dynamic import for PDF-related components to prevent SSR issues
-const PDFViewer = dynamic(() => import('../../components/PDFViewer'), {
-  ssr: false,
-  loading: () => <div className="bg-white rounded-3xl p-8 shadow-xl text-center">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-    <p className="text-gray-600 font-medium">Loading PDF preview...</p>
-  </div>
-});
 
 function ResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [generatedResume, setGeneratedResume] = useState<string>('');
   const [explanation, setExplanation] = useState<string>('');
-  const [pdfData, setPdfData] = useState<string | null>(null);
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   useEffect(() => {
     // Get data from localStorage instead of URL params to avoid URI malformed errors
@@ -47,19 +35,11 @@ function ResultsContent() {
     }
   }, [router]);
 
-  // Generate PDF when resume content is available
-  useEffect(() => {
-    if (generatedResume && !pdfData && !isGeneratingPdf) {
-      generatePdfPreview();
-    }
-  }, [generatedResume, pdfData, isGeneratingPdf]);
-
-  const generatePdfPreview = async () => {
+  const handleDownloadPdf = async () => {
     if (!generatedResume) return;
     
-    setIsGeneratingPdf(true);
     try {
-      // Create a temporary element with A4 dimensions
+      // Create a temporary element for PDF generation
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = generatedResume;
       tempDiv.style.width = '210mm';
@@ -75,14 +55,14 @@ function ResultsContent() {
       
       document.body.appendChild(tempDiv);
 
-      // Convert to canvas with high quality
+      // Convert to canvas
       const canvas = await html2canvas(tempDiv, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: 794, // 210mm at 96dpi
-        height: 1123, // 297mm at 96dpi
+        width: 794,
+        height: 1123,
       });
 
       // Remove temp element
@@ -97,30 +77,13 @@ function ResultsContent() {
 
       const imgData = canvas.toDataURL('image/png');
       pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
-
-      // Convert to base64 data URL for the PDF viewer
-      const pdfDataUrl = pdf.output('datauristring');
-      setPdfData(pdfDataUrl);
+      
+      // Download directly
+      pdf.save('enhanced-resume.pdf');
 
     } catch (error) {
       console.error('PDF generation error:', error);
-    } finally {
-      setIsGeneratingPdf(false);
-    }
-  };
-
-  const handleDownloadPdf = () => {
-    if (pdfData) {
-      // Extract base64 data and create blob
-      const base64Data = pdfData.split(',')[1];
-      const byteCharacters = atob(base64Data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
-      saveAs(blob, 'enhanced-resume.pdf');
+      alert('Error generating PDF. Please try again.');
     }
   };
 
@@ -211,20 +174,11 @@ function ResultsContent() {
                 <h3 className="text-xl font-bold text-white">Your Enhanced Resume is Ready!</h3>
               </div>
               
-              {isGeneratingPdf ? (
-                <div className="bg-white rounded-3xl p-8 shadow-xl text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600 font-medium">
-                    Generating PDF preview...
-                  </p>
-                </div>
-              ) : pdfData ? (
-                <PDFViewer 
-                  pdfData={pdfData}
-                  onDownloadPdf={handleDownloadPdf}
-                  onDownloadDocx={handleDownloadDocx}
-                />
-              ) : null}
+              {/* Simple HTML Preview instead of complex PDF viewer */}
+              <div className="bg-white rounded-3xl p-8 shadow-xl">
+                <div className="prose prose-sm max-w-none" 
+                     dangerouslySetInnerHTML={{ __html: generatedResume }} />
+              </div>
             </div>
           )}
 
@@ -240,6 +194,24 @@ function ResultsContent() {
 
           {/* Action Buttons */}
           <div className="bg-white rounded-3xl p-6 shadow-xl mb-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Download Your Resume</h3>
+            
+            {/* Download Options */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <button
+                onClick={handleDownloadPdf}
+                className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 rounded-2xl hover:from-red-600 hover:to-red-700 transition-all font-semibold flex items-center justify-center gap-2"
+              >
+                📄 Download PDF
+              </button>
+              <button
+                onClick={handleDownloadDocx}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4 rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all font-semibold flex items-center justify-center gap-2"
+              >
+                📝 Download Word
+              </button>
+            </div>
+
             <h3 className="text-xl font-bold text-gray-800 mb-4">What&apos;s Next?</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
