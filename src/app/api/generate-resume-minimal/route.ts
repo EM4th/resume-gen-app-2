@@ -3,6 +3,65 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
 
+async function scrapeJobDescription(url: string): Promise<string> {
+  try {
+    console.log("Attempting to scrape URL:", url);
+    
+    // Use fetch with proper headers to avoid blocking
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+      },
+      timeout: 15000
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const html = await response.text();
+    console.log("HTML fetched, length:", html.length);
+
+    // Extract text content from HTML using regex (lightweight approach)
+    let textContent = html
+      // Remove script and style tags completely
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+      // Remove HTML comments
+      .replace(/<!--[\s\S]*?-->/g, '')
+      // Convert common HTML entities
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      // Add line breaks for block elements
+      .replace(/<\/?(div|p|br|h[1-6]|li|tr)\b[^>]*>/gi, '\n')
+      // Remove all remaining HTML tags
+      .replace(/<[^>]*>/g, ' ')
+      // Clean up whitespace
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    console.log("Extracted text length:", textContent.length);
+    
+    if (textContent.length < 100) {
+      throw new Error("Extracted content too short - may be blocked or page not accessible");
+    }
+
+    return textContent;
+  } catch (error) {
+    console.error("Error scraping URL:", error);
+    throw new Error(`Could not scrape job posting from URL. Error: ${error instanceof Error ? error.message : 'Unknown error'}. Please paste the job description text directly instead.`);
+  }
+}
+
 async function extractTextFromFile(file: File): Promise<string> {
   try {
     console.log("Processing file:", {
@@ -11,12 +70,46 @@ async function extractTextFromFile(file: File): Promise<string> {
       size: file.size
     });
 
-    // For now, just return a placeholder since we're removing heavy dependencies
-    // TODO: Re-implement proper file parsing once we fix the timeout issues
-    return "PLACEHOLDER RESUME TEXT - Please paste your resume content directly in the job description field for now while we fix file upload issues.";
+    const fileName = file.name.toLowerCase();
+    const isPdf = file.type === "application/pdf" || fileName.endsWith('.pdf');
+    
+    if (isPdf) {
+      // For PDF files, we'll try a simple text extraction approach
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      
+      // Convert to string and try to extract readable text
+      let text = '';
+      for (let i = 0; i < uint8Array.length; i++) {
+        const char = String.fromCharCode(uint8Array[i]);
+        if (char.match(/[a-zA-Z0-9\s\.,;:!\?@\-\+\(\)]/)) {
+          text += char;
+        }
+      }
+      
+      // Clean up the extracted text
+      text = text
+        .replace(/\s+/g, ' ')
+        .replace(/[^\w\s\.,;:!\?@\-\+\(\)]/g, '')
+        .trim();
+      
+      if (text.length > 100) {
+        console.log("Successfully extracted text from PDF, length:", text.length);
+        return text;
+      }
+      
+      // If text extraction failed, ask user to paste content
+      throw new Error("Could not extract readable text from PDF. Please copy and paste your resume text directly into the job description field (you can include both job description and resume text).");
+    } else {
+      // For other file types (Word docs, etc.)
+      throw new Error("Please upload a PDF file, or copy and paste your resume text directly into the job description field.");
+    }
   } catch (error) {
     console.error("Error extracting text from file:", error);
-    throw new Error("File processing temporarily unavailable. Please paste your resume text directly.");
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Could not process file. Please copy and paste your resume text directly into the job description field.");
   }
 }
 
@@ -67,16 +160,49 @@ export async function POST(req: NextRequest) {
 
     console.log("Basic validation passed, processing inputs...");
     
-    // Simplified processing - treat jobUrl as plain text
-    const jobDescription = jobUrl;
-    const resumeText = await extractTextFromFile(resumeFile);
+    let jobDescription: string;
+    let resumeText: string;
+    
+    try {
+      console.log("Starting parallel processing of inputs...");
+      
+      // Check if jobUrl is a URL or plain text
+      const isUrl = jobUrl.startsWith('http://') || jobUrl.startsWith('https://') || jobUrl.includes('www.');
+      
+      if (isUrl) {
+        console.log("Processing as URL for job description");
+        jobDescription = await scrapeJobDescription(jobUrl);
+      } else {
+        console.log("Processing as plain text for job description");
+        jobDescription = jobUrl;
+      }
+      
+      // Process resume file
+      resumeText = await extractTextFromFile(resumeFile);
+      
+      console.log("Parallel processing completed successfully");
+    } catch (processingError) {
+      console.error("Error processing inputs:", processingError);
+      return NextResponse.json(
+        { error: `Processing error: ${processingError instanceof Error ? processingError.message : 'Unknown error'}` },
+        { status: 500 }
+      );
+    }
+
     
     console.log("Job description length:", jobDescription.length);
     console.log("Resume text length:", resumeText.length);
 
     if (jobDescription.length < 10) {
       return NextResponse.json(
-        { error: "Job description too short" },
+        { error: "Job description too short or could not be extracted" },
+        { status: 400 }
+      );
+    }
+
+    if (resumeText.length < 50) {
+      return NextResponse.json(
+        { error: `Resume text too short (${resumeText.length} characters). Please ensure your file contains readable text or paste your resume content directly.` },
         { status: 400 }
       );
     }
@@ -84,19 +210,52 @@ export async function POST(req: NextRequest) {
     console.log("Calling Gemini AI...");
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const prompt = `Create a professional resume optimized for this job posting. Return JSON format with "explanation" and "resume" fields.
+    const prompt = `You are a world-class resume writer and career strategist. Your task is to create a PERFECTLY FORMATTED, SUBMISSION-READY resume that will get this person hired.
 
-Job Posting:
+**CRITICAL SUCCESS REQUIREMENTS:**
+1. **Perfect Job Match**: Tailor EVERY section to match the job requirements exactly
+2. **ATS Optimization**: Use exact keywords from the job posting for maximum ATS score
+3. **Professional Formatting**: Create a visually stunning, executive-level resume format
+4. **Quantified Achievements**: Add specific metrics, percentages, and dollar amounts where possible
+5. **Submission Ready**: This resume must be immediately ready to submit for the job
+
+**FORMATTING STANDARDS:**
+- Clean, professional HTML with excellent typography
+- Consistent spacing and visual hierarchy
+- Modern design that stands out to hiring managers
+- Perfect alignment and professional styling
+- Ready for PDF conversion and printing
+
+**CONTENT STRATEGY:**
+- Extract and enhance the candidate's real information from their resume
+- Rewrite job titles and descriptions to align with target role requirements
+- Highlight technical skills that match job requirements exactly
+- Quantify all achievements with numbers and percentages where possible
+- Add relevant industry keywords throughout
+- Emphasize leadership and impact metrics
+- Create compelling bullet points that sell the candidate
+- Use the candidate's actual name, contact info, and experience
+
+**Job Posting to Match:**
 ${jobDescription}
 
-Resume Text:
+**Candidate's Original Resume:**
 ${resumeText}
 
-Return format:
+**OUTPUT FORMAT:**
+You must return a JSON object with exactly these fields:
 {
-  "explanation": "Brief explanation of changes made",
-  "resume": "HTML formatted resume ready for display"
-}`;
+  "explanation": "Brief strategy summary explaining key changes made to optimize for this specific role",
+  "resume": "Complete HTML resume with professional styling that's immediately ready to submit"
+}
+
+**EXAMPLE OUTPUT:**
+{
+  "explanation": "I optimized your resume for this specific role by emphasizing your relevant technical skills, quantifying achievements with specific metrics, and aligning job titles with the target position. The formatting is now executive-level and ATS-optimized.",
+  "resume": "<div style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif; max-width: 8.5in; margin: 0 auto; padding: 1in; line-height: 1.4; color: #333;'><header style='text-align: center; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px;'><h1 style='font-size: 28px; margin: 0; color: #1e40af;'>CANDIDATE NAME</h1><p style='font-size: 16px; margin: 10px 0; color: #666;'>Phone | Email | LinkedIn</p></header><!-- Professional resume content here --></div>"
+}
+
+Create a resume that will immediately impress hiring managers and get this person hired for this specific job!`;
 
     let result;
     try {
