@@ -32,7 +32,7 @@ export default function Home() {
     formData.append("resume", resumeFile);
 
     try {
-      console.log("Making API request to /api/generate-resume-minimal (TESTING - no heavy deps)");
+      console.log("Making API request to /api/generate-resume-minimal");
       
       // Add timeout to prevent infinite spinning
       const timeoutPromise = new Promise((_, reject) => 
@@ -51,14 +51,21 @@ export default function Home() {
       console.log("API response data:", data);
 
       if (data.success) {
-        // Store resume data in localStorage to avoid URL length issues
-        localStorage.setItem('generatedResume', data.generatedResume);
-        localStorage.setItem('resumeExplanation', data.explanation);
-        console.log("Resume data stored in localStorage");
-        
-        // Redirect to results page (no URL params needed)
-        console.log("Redirecting to results page...");
-        window.location.href = '/results';
+        try {
+          // Store resume data in localStorage to avoid URL length issues
+          localStorage.setItem('generatedResume', data.generatedResume);
+          localStorage.setItem('resumeExplanation', data.explanation);
+          console.log("Resume data stored in localStorage");
+          
+          // Redirect to results page (no URL params needed)
+          console.log("Redirecting to results page...");
+          window.location.href = '/results';
+        } catch (storageError) {
+          console.error("localStorage error, falling back to alert:", storageError);
+          // Fallback if localStorage fails
+          alert(`Resume generated successfully!\n\nExplanation: ${data.explanation}\n\nPlease copy the generated resume from the console.`);
+          console.log("Generated Resume HTML:", data.generatedResume);
+        }
       } else {
         console.error("API returned success: false", data);
         alert(data.error || "There was an error generating your resume. Please try again.");
