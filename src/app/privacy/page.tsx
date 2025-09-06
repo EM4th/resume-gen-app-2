@@ -45,7 +45,7 @@ export default function PrivacyPolicy() {
               </ul>
               <p className="mb-6">
                 You can opt out of personalized advertising by visiting 
-                <a href="https://www.google.com/settings/ads" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer"> Google's Ad Settings</a>.
+                <a href="https://www.google.com/settings/ads" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer"> Google&apos;s Ad Settings</a>.
               </p>
 
               <h2 className="text-2xl font-semibold mt-8 mb-4">Cookies</h2>
@@ -79,7 +79,7 @@ export default function PrivacyPolicy() {
               <h2 className="text-2xl font-semibold mt-8 mb-4">Changes to This Policy</h2>
               <p className="mb-6">
                 We may update this Privacy Policy from time to time. We will notify you of any 
-                changes by posting the new Privacy Policy on this page and updating the "Last updated" date.
+                changes by posting the new Privacy Policy on this page and updating the &quot;Last updated&quot; date.
               </p>
             </div>
 
