@@ -32,7 +32,7 @@ export default function Home() {
     formData.append("resume", resumeFile);
 
     try {
-      console.log("Making API request to /api/generate-resume-simple");
+      console.log("Making API request to /api/resume-formatter");
       
       // Add timeout to prevent infinite spinning
       const timeoutPromise = new Promise((_, reject) => 
@@ -41,7 +41,7 @@ export default function Home() {
       
       // Add cache-busting parameter
       const timestamp = Date.now();
-      const fetchPromise = fetch(`/api/generate-resume-simple?v=${timestamp}`, {
+      const fetchPromise = fetch(`/api/resume-formatter?v=${timestamp}`, {
         method: "POST",
         body: formData,
       });
@@ -53,6 +53,12 @@ export default function Home() {
       console.log("API response data:", data);
       console.log("API version received:", data.apiVersion);
       console.log("Response timestamp:", data.timestamp);
+      
+      // Show user which API version they're getting
+      if (data.apiVersion !== "formatter-v4.0") {
+        console.warn("WARNING: Not using the latest API version!");
+        console.warn("Expected: formatter-v4.0, Got:", data.apiVersion);
+      }
 
       if (data.success) {
         try {
