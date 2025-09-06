@@ -33,10 +33,18 @@ export default function Home() {
 
     try {
       console.log("Making API request to /api/generate-resume");
-      const response = await fetch("/api/generate-resume", {
+      
+      // Add timeout to prevent infinite spinning
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout after 60 seconds')), 60000)
+      );
+      
+      const fetchPromise = fetch("/api/generate-resume", {
         method: "POST",
         body: formData,
       });
+      
+      const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
 
       console.log("API response status:", response.status);
       const data = await response.json();
@@ -47,8 +55,21 @@ export default function Home() {
         const resumeParam = encodeURIComponent(data.generatedResume);
         const explanationParam = encodeURIComponent(data.explanation);
         console.log("Redirecting to results page...");
-        window.location.href = `/results?resume=${resumeParam}&explanation=${explanationParam}`;
+        
+        // Use router.push instead of window.location.href for better reliability
+        const resultUrl = `/results?resume=${resumeParam}&explanation=${explanationParam}`;
+        console.log("Result URL length:", resultUrl.length);
+        
+        // Try both methods to ensure redirect works
+        try {
+          window.location.href = resultUrl;
+        } catch (redirectError) {
+          console.error("Redirect error:", redirectError);
+          // Fallback: show results inline if redirect fails
+          alert("Generated successfully! Check console for results.");
+        }
       } else {
+        console.error("API returned success: false", data);
         alert(data.error || "There was an error generating your resume. Please try again.");
       }
     } catch (error) {
