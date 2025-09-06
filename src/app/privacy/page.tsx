@@ -12,7 +12,7 @@ export default function PrivacyPolicy() {
             <div className="prose prose-lg max-w-none text-gray-700">
               <h2 className="text-2xl font-semibold mt-8 mb-4">Information We Collect</h2>
               <p className="mb-4">
-                AI Resume Generator ("we", "our", or "us") collects information you provide directly to us, such as:
+                AI Resume Generator (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) collects information you provide directly to us, such as:
               </p>
               <ul className="list-disc pl-6 mb-6">
                 <li>Resume files you upload for processing</li>

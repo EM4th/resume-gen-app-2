@@ -12,7 +12,7 @@ export default function TermsOfService() {
             <div className="prose prose-lg max-w-none text-gray-700">
               <h2 className="text-2xl font-semibold mt-8 mb-4">Acceptance of Terms</h2>
               <p className="mb-4">
-                By accessing and using AI Resume Generator ("the Service"), you accept and agree to be bound by these Terms of Service.
+                By accessing and using AI Resume Generator (&quot;the Service&quot;), you accept and agree to be bound by these Terms of Service.
               </p>
 
               <h2 className="text-2xl font-semibold mt-8 mb-4">Service Description</h2>
@@ -40,7 +40,7 @@ export default function TermsOfService() {
 
               <h2 className="text-2xl font-semibold mt-8 mb-4">Limitation of Liability</h2>
               <p className="mb-6">
-                The service is provided "as is" without warranties. We are not liable for any damages arising from use of the service, including but not limited to career outcomes or hiring decisions.
+                The service is provided &quot;as is&quot; without warranties. We are not liable for any damages arising from use of the service, including but not limited to career outcomes or hiring decisions.
               </p>
 
               <h2 className="text-2xl font-semibold mt-8 mb-4">Privacy</h2>

@@ -225,7 +225,7 @@ export default function ResultsPage() {
 
           {/* Action Buttons */}
           <div className="bg-white rounded-3xl p-6 shadow-xl mb-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">What's Next?</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">What&apos;s Next?</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
                 onClick={handleCreateAnother}
