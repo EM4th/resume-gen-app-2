@@ -415,10 +415,13 @@ ${resumeText.split('\n').map(line => line.trim()).filter(line => line.length > 0
     const finalResponse = {
       success: true,
       generatedResume: data.resume || "<div>Error: No resume content available</div>",
-      explanation: data.explanation || "Resume processing completed."
+      explanation: data.explanation || "Resume processing completed.",
+      apiVersion: "minimal-v2.0",
+      timestamp: new Date().toISOString()
     };
     
     console.log("Final response keys:", Object.keys(finalResponse));
+    console.log("API Version: minimal-v2.0");
     return NextResponse.json(finalResponse);
   } catch (error) {
     console.error("=== UNEXPECTED ERROR IN MINIMAL RESUME GENERATION ===");

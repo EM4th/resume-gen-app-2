@@ -49,6 +49,8 @@ export default function Home() {
       console.log("API response status:", response.status);
       const data = await response.json();
       console.log("API response data:", data);
+      console.log("API version received:", data.apiVersion);
+      console.log("Response timestamp:", data.timestamp);
 
       if (data.success) {
         try {
@@ -56,6 +58,7 @@ export default function Home() {
           localStorage.setItem('generatedResume', data.generatedResume);
           localStorage.setItem('resumeExplanation', data.explanation);
           console.log("Resume data stored in localStorage");
+          console.log("Resume length:", data.generatedResume?.length || 0);
           
           // Redirect to results page (no URL params needed)
           console.log("Redirecting to results page...");
@@ -68,7 +71,8 @@ export default function Home() {
         }
       } else {
         console.error("API returned success: false", data);
-        alert(data.error || "There was an error generating your resume. Please try again.");
+        console.error("API version that failed:", data.apiVersion);
+        alert(`API Error (${data.apiVersion || 'unknown'}): ${data.error || "There was an error generating your resume. Please try again."}`);
       }
     } catch (error) {
       console.error("Error:", error);
