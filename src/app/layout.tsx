@@ -46,10 +46,18 @@ export default function RootLayout({
         {/* Google AdSense Auto Ads */}
         <Script id="google-adsense-init" strategy="afterInteractive">
           {`
-            (adsbygoogle = window.adsbygoogle || []).push({
-              google_ad_client: "ca-pub-7524647518323966",
-              enable_page_level_ads: true
-            });
+            if (typeof window !== 'undefined' && !window.adsbygoogle_initialized) {
+              try {
+                (adsbygoogle = window.adsbygoogle || []).push({
+                  google_ad_client: "ca-pub-7524647518323966",
+                  enable_page_level_ads: true
+                });
+                window.adsbygoogle_initialized = true;
+                console.log('AdSense page-level ads initialized');
+              } catch (error) {
+                console.error('AdSense initialization error:', error);
+              }
+            }
           `}
         </Script>
       </body>

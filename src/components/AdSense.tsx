@@ -13,6 +13,7 @@ interface AdSenseProps {
 declare global {
   interface Window {
     adsbygoogle: unknown[];
+    adsbygoogle_initialized?: boolean;
   }
 }
 
