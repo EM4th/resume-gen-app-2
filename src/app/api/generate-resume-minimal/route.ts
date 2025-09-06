@@ -293,13 +293,9 @@ Return your response in this exact JSON format:
 {
   "explanation": "Brief summary of optimizations made",
   "resume": "Complete HTML resume with professional styling"
-}`;
-
-**EXAMPLE OUTPUT:**
-{
-  "explanation": "I optimized your resume for this specific role by emphasizing your relevant technical skills, quantifying achievements with specific metrics, and aligning job titles with the target position. The formatting is now executive-level and ATS-optimized.",
-  "resume": "<div style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif; max-width: 8.5in; margin: 0 auto; padding: 1in; line-height: 1.4; color: #333;'><header style='text-align: center; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px;'><h1 style='font-size: 28px; margin: 0; color: #1e40af;'>CANDIDATE NAME</h1><p style='font-size: 16px; margin: 10px 0; color: #666;'>Phone | Email | LinkedIn</p></header><!-- Professional resume content here --></div>"
 }
+
+IMPORTANT: Return ONLY the JSON object, no other text before or after it.`;
 
     let result;
     try {
