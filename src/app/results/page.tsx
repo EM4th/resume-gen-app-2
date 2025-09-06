@@ -13,6 +13,8 @@ function ResultsContent() {
   const router = useRouter();
   const [generatedResume, setGeneratedResume] = useState<string>('');
   const [explanation, setExplanation] = useState<string>('');
+  const [pdfUrl, setPdfUrl] = useState<string>('');
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
 
   useEffect(() => {
     // Get data from localStorage instead of URL params to avoid URI malformed errors
@@ -24,6 +26,9 @@ function ResultsContent() {
       setExplanation(exp);
       console.log("Resume data loaded from localStorage");
       
+      // Generate PDF preview immediately
+      generatePdfPreview(resume);
+      
       // Clear localStorage after loading to prevent stale data
       localStorage.removeItem('generatedResume');
       localStorage.removeItem('resumeExplanation');
@@ -33,6 +38,60 @@ function ResultsContent() {
       router.push('/');
     }
   }, [router]);
+
+  const generatePdfPreview = async (resumeHtml: string) => {
+    setIsGeneratingPdf(true);
+    try {
+      // Create a temporary element for PDF generation
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = resumeHtml;
+      tempDiv.style.width = '210mm';
+      tempDiv.style.minHeight = '297mm';
+      tempDiv.style.padding = '20mm';
+      tempDiv.style.backgroundColor = 'white';
+      tempDiv.style.fontFamily = 'Arial, sans-serif';
+      tempDiv.style.fontSize = '12px';
+      tempDiv.style.lineHeight = '1.4';
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.top = '0';
+      
+      document.body.appendChild(tempDiv);
+      
+      // Generate canvas from HTML
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: 794, // A4 width in pixels at 96 DPI
+        height: 1123, // A4 height in pixels at 96 DPI
+      });
+      
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+      
+      // Convert PDF to blob and create URL for preview
+      const pdfBlob = pdf.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      setPdfUrl(pdfUrl);
+      
+      // Clean up
+      document.body.removeChild(tempDiv);
+      setIsGeneratingPdf(false);
+      
+    } catch (error) {
+      console.error('Error generating PDF preview:', error);
+      setIsGeneratingPdf(false);
+    }
+  };
 
   const handleDownloadPdf = async () => {
     if (!generatedResume) return;
@@ -165,7 +224,7 @@ function ResultsContent() {
             />
           </div>
 
-          {/* Resume Preview */}
+          {/* Resume PDF Preview */}
           {generatedResume && (
             <div className="space-y-4 mb-6">
               <div className="flex items-center gap-3">
@@ -173,10 +232,28 @@ function ResultsContent() {
                 <h3 className="text-xl font-bold text-white">Your Enhanced Resume is Ready!</h3>
               </div>
               
-              {/* Simple HTML Preview instead of complex PDF viewer */}
-              <div className="bg-white rounded-3xl p-8 shadow-xl">
-                <div className="prose prose-sm max-w-none" 
-                     dangerouslySetInnerHTML={{ __html: generatedResume }} />
+              {/* PDF Preview Window */}
+              <div className="bg-white rounded-3xl p-6 shadow-xl">
+                {isGeneratingPdf ? (
+                  <div className="flex items-center justify-center py-20">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600">Generating PDF preview...</p>
+                    </div>
+                  </div>
+                ) : pdfUrl ? (
+                  <div className="w-full">
+                    <iframe
+                      src={pdfUrl}
+                      className="w-full h-[800px] border-0 rounded-lg shadow-inner"
+                      title="Resume PDF Preview"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-20">
+                    <p className="text-gray-600">Error generating PDF preview</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

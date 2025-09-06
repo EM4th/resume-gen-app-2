@@ -229,43 +229,51 @@ export async function POST(req: NextRequest) {
     console.log("Calling Gemini AI...");
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const prompt = `You are a world-class resume writer and career strategist. Your task is to create a PERFECTLY FORMATTED, SUBMISSION-READY resume that will get this person hired.
+    const prompt = `You are an AGGRESSIVE resume transformation expert. Your mission is to create the PERFECT, SUBMISSION-READY resume that will guarantee this candidate gets hired for this specific role.
 
-**CRITICAL SUCCESS REQUIREMENTS:**
-1. **Perfect Job Match**: Tailor EVERY section to match the job requirements exactly
-2. **ATS Optimization**: Use exact keywords from the job posting for maximum ATS score
-3. **Professional Formatting**: Create a visually stunning, executive-level resume format
-4. **Quantified Achievements**: Add specific metrics, percentages, and dollar amounts where possible
-5. **Submission Ready**: This resume must be immediately ready to submit for the job
+**AGGRESSIVE OPTIMIZATION MANDATE:**
+1. **Extract Real Personal Data**: Pull actual name, phone, email, address from original resume - NEVER use placeholders
+2. **Strategic Enhancement**: Be BOLD in improving job titles, responsibilities, and achievements
+3. **Fill Employment Gaps**: Creatively address any gaps with consulting, projects, or relevant activities
+4. **Keyword Saturation**: Pack the resume with job posting keywords while maintaining natural flow
+5. **ATS Domination**: Structure for maximum ATS compatibility and scoring
+6. **Industry Standards**: Apply current industry best practices for this specific role type
 
-**FORMATTING STANDARDS:**
-- Clean, professional HTML with excellent typography
-- Consistent spacing and visual hierarchy
-- Modern design that stands out to hiring managers
-- Perfect alignment and professional styling
-- Ready for PDF conversion and printing
+**TRANSFORMATION STRATEGY:**
+- **Personal Information**: Extract and preserve real contact details from original resume
+- **Professional Summary**: Craft a powerful 3-4 line summary that screams "perfect fit"
+- **Experience Optimization**: 
+  * Enhance job titles to match industry standards and target role
+  * Rewrite bullet points with action verbs and quantified achievements
+  * Add implied accomplishments that align with job requirements
+  * Transform basic tasks into strategic contributions
+- **Skills Arsenal**: Include ALL relevant technical and soft skills from job posting
+- **Gap Management**: Address any employment gaps with strategic positioning
+- **Achievement Amplification**: Turn everyday work into impressive accomplishments
+- **Certification Addition**: Suggest relevant industry certifications that enhance candidacy
 
-**CRITICAL INSTRUCTIONS:**
-- NEVER use placeholder text like "Phone Number", "Email Address", "Previous Role Title", etc.
-- If the resume text seems incomplete or unclear, ask the user to provide more information
-- ALWAYS extract and use the candidate's actual information from their resume
-- If you cannot find specific details, indicate what information is missing rather than using placeholders
-- The resume must contain REAL information that can be submitted to employers
+**CRITICAL RULES:**
+- NEVER use placeholder text like "Phone Number", "Email Address", etc.
+- ALWAYS extract real personal information from the uploaded resume
+- BE AGGRESSIVE in optimizing while maintaining truthfulness
+- FILL gaps creatively but authentically
+- MAXIMIZE keyword integration for ATS systems
+- CREATE a resume that hiring managers CANNOT ignore
 
-**Job Posting to Match:**
+**Target Job Requirements:**
 ${jobDescription}
 
-**Candidate's Original Resume:**
+**Candidate's Original Resume Data:**
 ${resumeText}
 
-**IMPORTANT:** If the resume text appears to be placeholder content or is very short, respond with an error explaining that more detailed resume information is needed.
+**TASK:** Transform this resume into an UNSTOPPABLE job-winning weapon. Be bold, be aggressive, but be truthful. This resume must be submission-ready and optimized to beat every other candidate.
 
 **OUTPUT FORMAT:**
-You must return a JSON object with exactly these fields:
+Return a JSON object with:
 {
-  "explanation": "Brief strategy summary explaining key changes made to optimize for this specific role",
-  "resume": "Complete HTML resume with professional styling that's immediately ready to submit"
-}
+  "explanation": "Strategy summary of aggressive optimizations made for this specific role",
+  "resume": "Complete HTML resume with professional styling - immediately ready to submit and win interviews"
+}`;
 
 **EXAMPLE OUTPUT:**
 {
