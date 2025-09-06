@@ -184,41 +184,50 @@ export async function POST(req: NextRequest) {
     console.log("Calling Gemini AI...");
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const prompt = `You are a world-class career coach and expert resume writer. Your task is to rewrite the provided resume to perfectly match the job description while PRESERVING the original formatting, style, and structure.
+    const prompt = `You are a world-class resume writer and career strategist. Your task is to create a PERFECTLY FORMATTED, SUBMISSION-READY resume that will get this person hired.
 
-**CRITICAL FORMATTING REQUIREMENTS:**
-1. **Preserve Original Style**: Maintain the exact same visual structure, headings, and layout as the original resume
-2. **Keep Same Length**: Do not exceed the original resume's length (same number of pages/sections)
-3. **Match Professional Formatting**: Preserve fonts, spacing, bullet points, and visual hierarchy
-4. **Maintain Color Scheme**: Keep any existing color schemes or styling elements
-5. **Professional Presentation**: Ensure the output is immediately ready for job submission
+**CRITICAL SUCCESS REQUIREMENTS:**
+1. **Perfect Job Match**: Tailor EVERY section to match the job requirements exactly
+2. **ATS Optimization**: Use exact keywords from the job posting for maximum ATS score
+3. **Professional Formatting**: Create a visually stunning, executive-level resume format
+4. **Quantified Achievements**: Add specific metrics, percentages, and dollar amounts where possible
+5. **Submission Ready**: This resume must be immediately ready to submit for the job
 
-**CONTENT OPTIMIZATION STRATEGY:**
-- Mirror key skills and technologies from the job description
-- Rewrite job responsibilities to highlight relevant experience
-- Quantify achievements where possible (add metrics and numbers)
-- Use exact keywords from the job posting for ATS optimization
-- Remove or de-emphasize irrelevant experience
-- Adjust job titles and descriptions to match the target role
+**FORMATTING STANDARDS:**
+- Clean, professional HTML with excellent typography
+- Consistent spacing and visual hierarchy
+- Modern design that stands out to hiring managers
+- Perfect alignment and professional styling
+- Ready for PDF conversion and printing
 
-**Job Description:**
+**CONTENT STRATEGY:**
+- Rewrite job titles and descriptions to align with target role
+- Highlight technical skills that match job requirements
+- Quantify all achievements with numbers and percentages  
+- Add relevant industry keywords throughout
+- Emphasize leadership and impact metrics
+- Create compelling bullet points that sell the candidate
+
+**Job Posting to Match:**
 ${jobDescription}
 
-**Original Resume:**
+**Original Resume Text:**
 ${resumeText}
 
-**OUTPUT REQUIREMENTS:**
-Return a JSON object with exactly these two keys:
-- "explanation": A markdown-formatted strategy explanation (2-3 paragraphs max)
-- "resume": Complete enhanced resume in clean HTML that preserves the original's visual style
-
-**IMPORTANT**: The HTML should maintain the same professional appearance, section structure, and visual hierarchy as the original resume. Focus on content enhancement while preserving the proven formatting that makes the resume look professional and submission-ready.
-
-Example output:
+**OUTPUT FORMAT:**
+You must return a JSON object with exactly these fields:
 {
-  "explanation": "### Resume Enhancement Strategy\\n\\nI focused on highlighting your React and JavaScript experience to match the Frontend Developer role requirements. I quantified your achievements and emphasized modern web development skills.\\n\\nKey changes include repositioning your technical skills section, adding specific metrics to your project descriptions, and aligning your job titles with the target role's requirements.",
-  "resume": "<div style='font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; line-height: 1.6;'><!-- Enhanced resume with preserved formatting --></div>"
-}`;
+  "explanation": "Brief strategy summary explaining key changes made",
+  "resume": "Complete HTML resume with professional styling that's ready to submit"
+}
+
+**EXAMPLE OUTPUT:**
+{
+  "explanation": "I optimized your resume for this specific role by emphasizing your relevant technical skills, quantifying achievements with specific metrics, and aligning job titles with the target position. The formatting is now executive-level and ATS-optimized.",
+  "resume": "<div style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif; max-width: 8.5in; margin: 0 auto; padding: 1in; line-height: 1.4; color: #333;'><header style='text-align: center; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px;'><h1 style='font-size: 28px; margin: 0; color: #1e40af;'>CANDIDATE NAME</h1><p style='font-size: 16px; margin: 10px 0; color: #666;'>Phone | Email | LinkedIn</p></header><!-- Professional resume content here --></div>"
+}
+
+Create a resume that will immediately impress hiring managers and get this person hired for this specific job!`;
 
     let result;
     try {
@@ -236,35 +245,46 @@ Example output:
     
     // Get the raw text response
     const text = response.text().trim();
-    console.log("Raw AI response first 200 chars:", text.substring(0, 200));
+    console.log("Raw AI response first 300 chars:", text.substring(0, 300));
     
     let data;
     
     // Try to parse as JSON first
-    if (text.startsWith('{') && text.endsWith('}')) {
+    if (text.includes('{') && text.includes('}')) {
       try {
-        const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
-        data = JSON.parse(cleanText);
+        // Find JSON content between first { and last }
+        const jsonStart = text.indexOf('{');
+        const jsonEnd = text.lastIndexOf('}') + 1;
+        const jsonText = text.substring(jsonStart, jsonEnd);
+        
+        data = JSON.parse(jsonText);
         console.log("Successfully parsed AI response as JSON");
       } catch (parseError) {
         console.error("Failed to parse as JSON:", parseError);
-        // Fall back to text parsing
+        console.log("Attempting fallback parsing...");
         data = null;
       }
     }
     
-    // If JSON parsing failed or response isn't JSON format, parse as text
+    // If JSON parsing failed, create a formatted response
     if (!data) {
-      console.log("Parsing AI response as plain text");
-      // Split response by common delimiters to extract explanation and resume
-      const lines = text.split('\n');
-      const explanation = "I enhanced your resume to better match the job requirements by optimizing keywords and highlighting relevant experience.";
+      console.log("Creating formatted response from AI text");
       
-      // Assume the whole response is the resume content
-      const resume = `<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; line-height: 1.6; padding: 20px;">
-        <h1 style="color: #333; border-bottom: 2px solid #4a90e2; padding-bottom: 10px;">Enhanced Resume</h1>
-        <div style="white-space: pre-wrap; font-size: 14px; color: #444;">
-          ${text.replace(/\n/g, '<br>')}
+      const explanation = "I've enhanced your resume to perfectly match this job posting by optimizing keywords, quantifying achievements, and ensuring professional formatting that will impress hiring managers and pass ATS screening.";
+      
+      // Create a professionally formatted resume from the AI response
+      const resume = `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 8.5in; margin: 0 auto; padding: 1in; line-height: 1.6; color: #333; background: white;">
+        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          <header style="text-align: center; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px;">
+            <h1 style="font-size: 28px; margin: 0; color: #1e40af; font-weight: 700;">ENHANCED RESUME</h1>
+            <p style="font-size: 14px; margin: 10px 0; color: #666; font-style: italic;">Optimized for Your Target Position</p>
+          </header>
+          <div style="white-space: pre-wrap; font-size: 14px; line-height: 1.8;">
+${text.replace(/\n/g, '<br>').replace(/\*/g, '•')}
+          </div>
+          <footer style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #888;">
+            <p>Resume optimized for ATS screening and hiring manager review</p>
+          </footer>
         </div>
       </div>`;
       
@@ -274,15 +294,16 @@ Example output:
       };
     }
 
+    // Ensure we have the required fields
     if (!data.explanation || !data.resume) {
-      console.error("AI response missing required fields:", Object.keys(data));
+      console.error("Missing required fields in response");
       return NextResponse.json(
-        { error: "AI response format error. Missing explanation or resume." },
+        { error: "AI response incomplete. Please try again." },
         { status: 500 }
       );
     }
 
-    console.log("Returning successful response");
+    console.log("Returning successful response with resume length:", data.resume.length);
     return NextResponse.json({ 
       success: true, 
       generatedResume: data.resume, 
