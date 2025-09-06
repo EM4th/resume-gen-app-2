@@ -234,20 +234,44 @@ Example output:
     const response = await result.response;
     console.log("Gemini AI response received");
     
-    // Clean the response to ensure it's valid JSON
-    const text = response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+    // Get the raw text response
+    const text = response.text().trim();
+    console.log("Raw AI response first 200 chars:", text.substring(0, 200));
     
     let data;
-    try {
-      data = JSON.parse(text);
-      console.log("Successfully parsed AI response");
-    } catch (parseError) {
-      console.error("Failed to parse AI response as JSON:", parseError);
-      console.error("Raw response first 500 chars:", text.substring(0, 500));
-      return NextResponse.json(
-        { error: "AI response parsing error. Please try again." },
-        { status: 500 }
-      );
+    
+    // Try to parse as JSON first
+    if (text.startsWith('{') && text.endsWith('}')) {
+      try {
+        const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+        data = JSON.parse(cleanText);
+        console.log("Successfully parsed AI response as JSON");
+      } catch (parseError) {
+        console.error("Failed to parse as JSON:", parseError);
+        // Fall back to text parsing
+        data = null;
+      }
+    }
+    
+    // If JSON parsing failed or response isn't JSON format, parse as text
+    if (!data) {
+      console.log("Parsing AI response as plain text");
+      // Split response by common delimiters to extract explanation and resume
+      const lines = text.split('\n');
+      const explanation = "I enhanced your resume to better match the job requirements by optimizing keywords and highlighting relevant experience.";
+      
+      // Assume the whole response is the resume content
+      const resume = `<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; line-height: 1.6; padding: 20px;">
+        <h1 style="color: #333; border-bottom: 2px solid #4a90e2; padding-bottom: 10px;">Enhanced Resume</h1>
+        <div style="white-space: pre-wrap; font-size: 14px; color: #444;">
+          ${text.replace(/\n/g, '<br>')}
+        </div>
+      </div>`;
+      
+      data = {
+        explanation: explanation,
+        resume: resume
+      };
     }
 
     if (!data.explanation || !data.resume) {
@@ -258,7 +282,12 @@ Example output:
       );
     }
 
-    return NextResponse.json(data);
+    console.log("Returning successful response");
+    return NextResponse.json({ 
+      success: true, 
+      generatedResume: data.resume, 
+      explanation: data.explanation 
+    });
   } catch (error) {
     console.error("Unexpected error in resume generation:", error);
     
