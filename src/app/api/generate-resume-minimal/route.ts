@@ -421,7 +421,8 @@ ${resumeText.split('\n').map(line => line.trim()).filter(line => line.length > 0
     };
     
     console.log("Final response keys:", Object.keys(finalResponse));
-    console.log("API Version: minimal-v2.0");
+    console.log("API Version: minimal-v2.0 - DEPLOYMENT TEST");
+    console.log("=== NEW MINIMAL API IS RUNNING ===");
     return NextResponse.json(finalResponse);
   } catch (error) {
     console.error("=== UNEXPECTED ERROR IN MINIMAL RESUME GENERATION ===");
