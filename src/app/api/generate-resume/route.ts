@@ -8,59 +8,20 @@ import chromium from "@sparticuz/chromium";
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
 
 async function getJobDescription(input: string): Promise<string> {
-  // Check if input is a URL or plain text
+  // TEMPORARY FIX: Disable web scraping to isolate API issues
+  // Always treat input as plain text for now
+  console.log("Input received (treating as plain text):", input.substring(0, 100));
+  
+  // Check if it looks like a URL
   const isUrl = input.startsWith('http://') || input.startsWith('https://') || input.includes('www.');
   
-  if (!isUrl) {
-    // If it's not a URL, treat it as plain text job description
-    console.log("Input detected as plain text job description");
-    return input;
+  if (isUrl) {
+    console.log("URL detected, but web scraping is temporarily disabled");
+    return "PLEASE PASTE THE JOB DESCRIPTION TEXT DIRECTLY. URL scraping is temporarily disabled while we fix technical issues.";
   }
-
-  // If it's a URL, try to scrape it
-  let browser = null;
-  try {
-    console.log("Attempting to scrape URL:", input);
-    const executablePath = await chromium.executablePath();
-
-    browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath,
-      headless: true,
-    });
-
-    const page = await browser.newPage();
-    await page.goto(input, { waitUntil: "networkidle2", timeout: 30000 });
-
-    // Extract text from the body of the page
-    const jobDescription = await page.evaluate(() => document.body.innerText);
-    console.log("Successfully scraped job description, length:", jobDescription.length);
-    
-    return jobDescription;
-  } catch (error) {
-    console.error("Error fetching job description with Puppeteer:", error);
-    // Fallback to basic fetch
-    try {
-        console.log("Trying fallback fetch method for URL:", input);
-        const response = await fetch(input);
-        const text = await response.text();
-        // Extract text content from HTML
-        const htmlContent = text.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-                               .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-                               .replace(/<[^>]*>/g, ' ')
-                               .replace(/\s+/g, ' ')
-                               .trim();
-        console.log("Fallback fetch successful, content length:", htmlContent.length);
-        return htmlContent;
-    } catch (fetchError) {
-        console.error("Error fetching job description with basic fetch:", fetchError);
-        throw new Error("Could not fetch job description from URL. Please paste the job description text directly instead.");
-    }
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
-  }
+  
+  // Return the plain text input
+  return input;
 }
 
 async function extractTextFromResume(file: File): Promise<string> {
@@ -115,6 +76,8 @@ async function extractTextFromResume(file: File): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
+  console.log("=== RESUME GENERATION REQUEST STARTED ===");
+  
   try {
     console.log("Resume generation request received");
     
@@ -127,7 +90,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const formData = await req.formData();
+    console.log("Environment check passed");
+    
+    let formData;
+    try {
+      formData = await req.formData();
+      console.log("Form data parsed successfully");
+    } catch (parseError) {
+      console.error("Failed to parse form data:", parseError);
+      return NextResponse.json(
+        { error: "Invalid form data" },
+        { status: 400 }
+      );
+    }
+
     const jobUrl = formData.get("jobUrl") as string | null;
     const resumeFile = formData.get("resume") as File | null;
 
@@ -146,16 +122,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log("Processing job description and resume...");
+    console.log("Basic validation passed, processing inputs...");
     
     let jobDescription: string;
     let resumeText: string;
     
     try {
+      console.log("Starting parallel processing of inputs...");
       [jobDescription, resumeText] = await Promise.all([
         getJobDescription(jobUrl),
         extractTextFromResume(resumeFile),
       ]);
+      console.log("Parallel processing completed successfully");
     } catch (processingError) {
       console.error("Error processing inputs:", processingError);
       return NextResponse.json(
@@ -231,7 +209,9 @@ Create a resume that will immediately impress hiring managers and get this perso
 
     let result;
     try {
+      console.log("Sending request to Gemini AI...");
       result = await model.generateContent(prompt);
+      console.log("Gemini AI request completed");
     } catch (aiError) {
       console.error("Gemini AI error:", aiError);
       return NextResponse.json(
@@ -240,7 +220,17 @@ Create a resume that will immediately impress hiring managers and get this perso
       );
     }
 
-    const response = await result.response;
+    let response;
+    try {
+      response = await result.response;
+      console.log("Gemini AI response received successfully");
+    } catch (responseError) {
+      console.error("Error getting response from AI result:", responseError);
+      return NextResponse.json(
+        { error: `AI response error: ${responseError instanceof Error ? responseError.message : 'Unknown response error'}` },
+        { status: 500 }
+      );
+    }
     console.log("Gemini AI response received");
     
     // Get the raw text response
@@ -304,13 +294,16 @@ ${text.replace(/\n/g, '<br>').replace(/\*/g, '•')}
     }
 
     console.log("Returning successful response with resume length:", data.resume.length);
+    console.log("=== RESUME GENERATION REQUEST COMPLETED SUCCESSFULLY ===");
     return NextResponse.json({ 
       success: true, 
       generatedResume: data.resume, 
       explanation: data.explanation 
     });
   } catch (error) {
-    console.error("Unexpected error in resume generation:", error);
+    console.error("=== UNEXPECTED ERROR IN RESUME GENERATION ===");
+    console.error("Error details:", error);
+    console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
     
     return NextResponse.json(
       { 
