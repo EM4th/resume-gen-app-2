@@ -17,10 +17,14 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Form submitted!", { jobUrl, resumeFile });
+    
     if (!jobUrl || !resumeFile) {
       alert("Please provide both a job URL and a resume file.");
       return;
     }
+    
+    console.log("Validation passed, starting API call...");
     setIsLoading(true);
 
     const formData = new FormData();
@@ -28,17 +32,21 @@ export default function Home() {
     formData.append("resume", resumeFile);
 
     try {
+      console.log("Making API request to /api/generate-resume");
       const response = await fetch("/api/generate-resume", {
         method: "POST",
         body: formData,
       });
 
+      console.log("API response status:", response.status);
       const data = await response.json();
+      console.log("API response data:", data);
 
       if (data.success) {
         // Redirect to results page with data as URL params
         const resumeParam = encodeURIComponent(data.generatedResume);
         const explanationParam = encodeURIComponent(data.explanation);
+        console.log("Redirecting to results page...");
         window.location.href = `/results?resume=${resumeParam}&explanation=${explanationParam}`;
       } else {
         alert(data.error || "There was an error generating your resume. Please try again.");
