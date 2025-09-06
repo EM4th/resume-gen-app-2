@@ -1,16 +1,25 @@
 "use client";
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import AdSense from '../../components/AdSense';
-import PDFViewer from '../../components/PDFViewer';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import dynamic from 'next/dynamic';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { saveAs } from 'file-saver';
 
-export default function ResultsPage() {
+// Dynamic import for PDF-related components to prevent SSR issues
+const PDFViewer = dynamic(() => import('../../components/PDFViewer'), {
+  ssr: false,
+  loading: () => <div className="bg-white rounded-3xl p-8 shadow-xl text-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+    <p className="text-gray-600 font-medium">Loading PDF preview...</p>
+  </div>
+});
+
+function ResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [generatedResume, setGeneratedResume] = useState<string>('');
@@ -278,5 +287,20 @@ export default function ResultsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResultsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-800 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Loading results...</p>
+        </div>
+      </div>
+    }>
+      <ResultsContent />
+    </Suspense>
   );
 }
