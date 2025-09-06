@@ -42,55 +42,68 @@ function ResultsContent() {
   const generatePdfPreview = async (resumeHtml: string) => {
     setIsGeneratingPdf(true);
     try {
-      // Create a temporary element for PDF generation
+      // Create a clean PDF-optimized version of the resume
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = resumeHtml;
-      tempDiv.style.width = '210mm';
-      tempDiv.style.minHeight = '297mm';
-      tempDiv.style.padding = '20mm';
-      tempDiv.style.backgroundColor = 'white';
-      tempDiv.style.fontFamily = 'Arial, sans-serif';
-      tempDiv.style.fontSize = '12px';
-      tempDiv.style.lineHeight = '1.4';
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.left = '-9999px';
-      tempDiv.style.top = '0';
+      
+      // PDF-optimized styling
+      tempDiv.style.cssText = `
+        width: 8.5in;
+        min-height: 11in;
+        padding: 0.75in;
+        background: white;
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 11pt;
+        line-height: 1.4;
+        color: #000;
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        box-sizing: border-box;
+      `;
       
       document.body.appendChild(tempDiv);
       
-      // Generate canvas from HTML
+      // Wait for fonts to load
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Generate high-quality canvas
       const canvas = await html2canvas(tempDiv, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: 794, // A4 width in pixels at 96 DPI
-        height: 1123, // A4 height in pixels at 96 DPI
+        width: 816, // 8.5in at 96dpi
+        height: 1056, // 11in at 96dpi
+        scrollX: 0,
+        scrollY: 0,
       });
       
-      // Create PDF
+      // Create professional PDF
       const pdf = new jsPDF({
         orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
+        unit: 'in',
+        format: 'letter'
       });
       
-      const imgData = canvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      pdf.addImage(imgData, 'PNG', 0, 0, 8.5, 11, undefined, 'FAST');
       
-      // Convert PDF to blob and create URL for preview
+      // Create blob URL for iframe preview
       const pdfBlob = pdf.output('blob');
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      setPdfUrl(pdfUrl);
+      const url = URL.createObjectURL(pdfBlob);
+      setPdfUrl(url);
       
-      // Clean up
+      // Cleanup
       document.body.removeChild(tempDiv);
-      setIsGeneratingPdf(false);
       
     } catch (error) {
-      console.error('Error generating PDF preview:', error);
+      console.error('PDF generation failed:', error);
+      setPdfUrl('');
+    } finally {
       setIsGeneratingPdf(false);
     }
+  };
   };
 
   const handleDownloadPdf = async () => {
@@ -197,22 +210,42 @@ function ResultsContent() {
             </button>
           </div>
 
-          {/* AI Explanation Card */}
-          {explanation && (
-            <div className="bg-white rounded-3xl p-6 shadow-xl mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="text-2xl">🤖</div>
-                <h3 className="text-xl font-bold text-gray-800">
-                  AI&apos;s Enhancement Strategy
-                </h3>
-              </div>
-              <div className="prose prose-sm max-w-none text-gray-600">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {explanation}
-                </ReactMarkdown>
-              </div>
+          {/* Download Actions - Right After Preview */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl mb-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">📥 Download Your Resume</h3>
+            
+            {/* Download Options */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <button
+                onClick={handleDownloadPdf}
+                className="bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-4 rounded-2xl hover:from-red-600 hover:to-red-700 transition-all font-semibold flex items-center justify-center gap-2 text-lg"
+              >
+                📄 Download PDF
+              </button>
+              <button
+                onClick={handleDownloadDocx}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-4 rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all font-semibold flex items-center justify-center gap-2 text-lg"
+              >
+                📝 Download Word
+              </button>
             </div>
-          )}
+            
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <button
+                onClick={handleCreateAnother}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-2xl hover:from-purple-700 hover:to-blue-700 transition-all font-semibold"
+              >
+                🚀 Create Another Resume
+              </button>
+              <button
+                onClick={() => window.open('https://www.linkedin.com/jobs/', '_blank')}
+                className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-3 rounded-2xl hover:from-green-700 hover:to-teal-700 transition-all font-semibold"
+              >
+                🔍 Browse Jobs
+              </button>
+            </div>
+          </div>
 
           {/* Mid-page Ad */}
           <div className="mb-6">
@@ -224,56 +257,49 @@ function ResultsContent() {
             />
           </div>
 
-          {/* Resume Content Preview - ACTUAL READABLE PREVIEW */}
+          {/* Clean PDF Preview Only */}
           {generatedResume && (
             <div className="space-y-4 mb-6">
               <div className="flex items-center gap-3">
                 <div className="text-2xl">📄</div>
-                <h3 className="text-xl font-bold text-white">Your Enhanced Resume Preview</h3>
+                <h3 className="text-xl font-bold text-white">Your Professional Resume</h3>
               </div>
               
-              {/* HTML Content Preview - Main Preview */}
-              <div className="bg-white rounded-3xl p-8 shadow-xl">
-                <div 
-                  className="resume-preview-content"
-                  dangerouslySetInnerHTML={{ __html: generatedResume }}
-                  style={{
-                    maxWidth: '100%',
-                    fontSize: '14px',
-                    lineHeight: '1.5',
-                    fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif'
-                  }}
-                />
-              </div>
-              
-              {/* PDF Preview Window - Secondary */}
+              {/* PDF Preview Window - Clean and Simple */}
               <div className="bg-white rounded-3xl p-6 shadow-xl">
-                <h4 className="text-lg font-bold text-gray-800 mb-4">📱 Mobile PDF Preview</h4>
                 {isGeneratingPdf ? (
                   <div className="flex items-center justify-center py-20">
                     <div className="text-center">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                      <p className="text-gray-600">Generating PDF preview...</p>
+                      <p className="text-gray-600">Generating your professional resume...</p>
                     </div>
                   </div>
                 ) : pdfUrl ? (
                   <div className="w-full">
                     <iframe
                       src={pdfUrl}
-                      className="w-full h-[600px] border-0 rounded-lg shadow-inner"
-                      title="Resume PDF Preview"
+                      className="w-full h-[900px] border-2 border-gray-200 rounded-lg"
+                      title="Professional Resume Preview"
+                      style={{ 
+                        backgroundColor: 'white',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      }}
                     />
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center py-20">
-                    <p className="text-gray-600">PDF preview will appear here after generation</p>
+                  <div className="flex items-center justify-center py-20 bg-gray-50 rounded-lg">
+                    <div className="text-center">
+                      <div className="text-4xl mb-4">📄</div>
+                      <p className="text-gray-600 text-lg">Your resume is being processed...</p>
+                      <p className="text-gray-500 text-sm mt-2">PDF preview will appear here shortly</p>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* Results Page Ad - This will be a fourth ad unit */}
+          {/* Final Ad */}
           <div className="mb-6">
             <AdSense 
               adSlot="9876543210" 
@@ -281,43 +307,6 @@ function ResultsContent() {
               className="text-center"
               style={{ display: 'block', textAlign: 'center', minHeight: '300px' }}
             />
-          </div>
-
-          {/* Action Buttons */}
-          <div className="bg-white rounded-3xl p-6 shadow-xl mb-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Download Your Resume</h3>
-            
-            {/* Download Options */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <button
-                onClick={handleDownloadPdf}
-                className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 rounded-2xl hover:from-red-600 hover:to-red-700 transition-all font-semibold flex items-center justify-center gap-2"
-              >
-                📄 Download PDF
-              </button>
-              <button
-                onClick={handleDownloadDocx}
-                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4 rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all font-semibold flex items-center justify-center gap-2"
-              >
-                📝 Download Word
-              </button>
-            </div>
-
-            <h3 className="text-xl font-bold text-gray-800 mb-4">What&apos;s Next?</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button
-                onClick={handleCreateAnother}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-4 rounded-2xl hover:from-purple-700 hover:to-blue-700 transition-all font-semibold"
-              >
-                🚀 Create Another Resume
-              </button>
-              <button
-                onClick={() => window.open('https://www.linkedin.com/jobs/', '_blank')}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold"
-              >
-                💼 Find Jobs on LinkedIn
-              </button>
-            </div>
           </div>
 
           {/* Footer Ad */}
