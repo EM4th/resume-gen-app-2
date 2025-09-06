@@ -28,18 +28,24 @@ function ResultsContent() {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   useEffect(() => {
-    // Get data from URL params (you'll pass this when redirecting)
-    const resume = searchParams.get('resume');
-    const exp = searchParams.get('explanation');
+    // Get data from localStorage instead of URL params to avoid URI malformed errors
+    const resume = localStorage.getItem('generatedResume');
+    const exp = localStorage.getItem('resumeExplanation');
     
     if (resume && exp) {
-      setGeneratedResume(decodeURIComponent(resume));
-      setExplanation(decodeURIComponent(exp));
+      setGeneratedResume(resume);
+      setExplanation(exp);
+      console.log("Resume data loaded from localStorage");
+      
+      // Clear localStorage after loading to prevent stale data
+      localStorage.removeItem('generatedResume');
+      localStorage.removeItem('resumeExplanation');
     } else {
       // Redirect back to home if no data
+      console.log("No resume data found, redirecting to home");
       router.push('/');
     }
-  }, [searchParams, router]);
+  }, [router]);
 
   // Generate PDF when resume content is available
   useEffect(() => {

@@ -51,23 +51,14 @@ export default function Home() {
       console.log("API response data:", data);
 
       if (data.success) {
-        // Redirect to results page with data as URL params
-        const resumeParam = encodeURIComponent(data.generatedResume);
-        const explanationParam = encodeURIComponent(data.explanation);
+        // Store resume data in localStorage to avoid URL length issues
+        localStorage.setItem('generatedResume', data.generatedResume);
+        localStorage.setItem('resumeExplanation', data.explanation);
+        console.log("Resume data stored in localStorage");
+        
+        // Redirect to results page (no URL params needed)
         console.log("Redirecting to results page...");
-        
-        // Use router.push instead of window.location.href for better reliability
-        const resultUrl = `/results?resume=${resumeParam}&explanation=${explanationParam}`;
-        console.log("Result URL length:", resultUrl.length);
-        
-        // Try both methods to ensure redirect works
-        try {
-          window.location.href = resultUrl;
-        } catch (redirectError) {
-          console.error("Redirect error:", redirectError);
-          // Fallback: show results inline if redirect fails
-          alert("Generated successfully! Check console for results.");
-        }
+        window.location.href = '/results';
       } else {
         console.error("API returned success: false", data);
         alert(data.error || "There was an error generating your resume. Please try again.");
