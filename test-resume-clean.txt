@@ -1,0 +1,31 @@
+John Smith
+Software Developer
+john.smith@email.com | (555) 123-4567 | LinkedIn: linkedin.com/in/johnsmith
+
+SUMMARY
+Experienced full-stack developer with 5+ years of experience building scalable web applications using React, Node.js, and Python. Proven track record of delivering high-quality software solutions and leading development teams.
+
+EXPERIENCE
+
+Senior Software Developer | TechCorp Inc. | 2021-Present
+• Developed and maintained React-based web applications serving 100K+ users
+• Led team of 3 developers in building microservices architecture
+• Improved application performance by 40% through code optimization
+• Collaborated with product managers to define technical requirements
+
+Software Developer | StartupXYZ | 2019-2021
+• Built full-stack applications using Python Django and React
+• Implemented automated testing reducing bugs by 60%
+• Developed REST APIs handling 10K+ requests per day
+• Mentored junior developers and conducted code reviews
+
+EDUCATION
+Bachelor of Science in Computer Science | State University | 2019
+GPA: 3.8/4.0
+
+SKILLS
+• Programming Languages: JavaScript, Python, Java, TypeScript
+• Frontend: React, Vue.js, HTML5, CSS3, Bootstrap
+• Backend: Node.js, Django, Express.js, Flask
+• Databases: PostgreSQL, MongoDB, MySQL
+• Tools: Git, Docker, AWS, Jenkins, Jira

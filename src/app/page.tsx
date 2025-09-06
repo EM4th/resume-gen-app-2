@@ -32,16 +32,14 @@ export default function Home() {
     formData.append("resume", resumeFile);
 
     try {
-      console.log("Making API request to /api/resume-formatter");
+      console.log("Making API request to /api/generate-resume-ai (AI-powered)");
       
       // Add timeout to prevent infinite spinning
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout after 60 seconds')), 60000)
+        setTimeout(() => reject(new Error('Request timeout after 90 seconds')), 90000)
       );
       
-      // Add cache-busting parameter
-      const timestamp = Date.now();
-      const fetchPromise = fetch(`/api/resume-formatter?v=${timestamp}`, {
+      const fetchPromise = fetch(`/api/generate-resume-ai?t=${Date.now()}`, {
         method: "POST",
         body: formData,
       });
@@ -55,9 +53,9 @@ export default function Home() {
       console.log("Response timestamp:", data.timestamp);
       
       // Show user which API version they're getting
-      if (data.apiVersion !== "formatter-v4.0") {
-        console.warn("WARNING: Not using the latest API version!");
-        console.warn("Expected: formatter-v4.0, Got:", data.apiVersion);
+      if (data.apiVersion !== "ai-generator-v5.0") {
+        console.warn("WARNING: Not using the latest AI generator API version!");
+        console.warn("Expected: ai-generator-v5.0, Got:", data.apiVersion);
       }
 
       if (data.success) {
@@ -97,12 +95,13 @@ export default function Home() {
           <div className="w-full max-w-md">
             {/* Header Card */}
             <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 mb-6 text-center border border-white/20">
-              <div className="text-6xl mb-4">🚀</div>
+              <div className="text-6xl mb-4">🤖</div>
               <h1 className="text-3xl font-bold text-white mb-4">
                 AI Resume Generator
               </h1>
               <p className="text-white/80 text-lg">
-                Transform your resume with AI to match any job description perfectly
+                🎯 AI analyzes job postings & optimizes your resume content<br/>
+                🚀 Scrapes URLs & tailors your experience to match requirements
               </p>
             </div>
 
@@ -140,15 +139,18 @@ export default function Home() {
 
                 <div>
                   <label className="block text-gray-700 font-semibold mb-3 text-lg">
-                    Job Post Url:
+                    🎯 Job Posting URL or Description:
                   </label>
                   <textarea
-                    placeholder="Paste job description text or enter a job posting URL..."
+                    placeholder="Enter a job posting URL (LinkedIn, Indeed, etc.) OR paste the complete job description text here. Our AI will analyze the requirements and optimize your resume accordingly..."
                     className="w-full h-32 p-4 border border-gray-300 rounded-2xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     value={jobUrl}
                     onChange={(e) => setJobUrl(e.target.value)}
                     required
                   />
+                  <p className="text-sm text-gray-600 mt-2">
+                    💡 <strong>Pro tip:</strong> For best results, provide the complete job posting URL or copy the entire job description including requirements, qualifications, and responsibilities.
+                  </p>
                 </div>
 
                 {/* Ad placement after job description section */}
