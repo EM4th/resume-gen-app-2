@@ -1,6 +1,6 @@
 "use client";
 
-// Force redeploy - Sept 5, 2025
+// Force cache bust deployment - Sept 6, 2025 - Single line upload implementation
 import { useState } from "react";
 import AdSense from "../components/AdSense";
 
