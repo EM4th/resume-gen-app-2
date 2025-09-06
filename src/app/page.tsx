@@ -39,7 +39,9 @@ export default function Home() {
         setTimeout(() => reject(new Error('Request timeout after 60 seconds')), 60000)
       );
       
-      const fetchPromise = fetch("/api/generate-resume-simple", {
+      // Add cache-busting parameter
+      const timestamp = Date.now();
+      const fetchPromise = fetch(`/api/generate-resume-simple?v=${timestamp}`, {
         method: "POST",
         body: formData,
       });
