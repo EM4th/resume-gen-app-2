@@ -10,7 +10,6 @@ import html2canvas from 'html2canvas';
 import { saveAs } from 'file-saver';
 
 function ResultsContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
   const [generatedResume, setGeneratedResume] = useState<string>('');
   const [explanation, setExplanation] = useState<string>('');
