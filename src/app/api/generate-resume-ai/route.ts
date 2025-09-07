@@ -202,61 +202,71 @@ Keep it concise and professional (2-3 sentences).`;
   }
 }
 
-function formatResumeAsHTML(resumeContent: string, explanation: string, jobUrl: string): string {
+function formatResumeAsHTML(resumeContent: string): string {
   // Clean the resume content and structure it properly
   const lines = resumeContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
   
   let formattedHTML = '';
-  let currentSection = '';
-  let isFirstSection = true;
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const nextLine = i + 1 < lines.length ? lines[i + 1] : '';
-    
-    // Detect name (usually first line or has typical name pattern)
-    if (i === 0 && line.match(/^[A-Z][a-z]+\s+[A-Z][a-z]+/)) {
+  let inHeader = true;
+
+  // Group name and contact info
+  formattedHTML += '<div class="resume-header">';
+  let headerLines = 0;
+  while(headerLines < lines.length) {
+    const line = lines[headerLines];
+    if (line.match(/^(Experience|Education|Skills|Summary|Objective|Qualifications|Certifications|Projects)/i) || line.match(/^[A-Z][A-Z\s&]+$/)) {
+      break; // Stop when a section header is found
+    }
+    if (headerLines === 0) {
       formattedHTML += `<div class="name">${line}</div>\n`;
-      continue;
-    }
-    
-    // Detect contact info (phone, email, linkedin)
-    if (line.match(/\(\d{3}\)|\d{3}-\d{4}|@|linkedin|\.com/)) {
+    } else {
       formattedHTML += `<div class="contact">${line}</div>\n`;
-      continue;
     }
+    headerLines++;
+  }
+  formattedHTML += '</div>';
+
+  let inList = false;
+
+  for (let i = headerLines; i < lines.length; i++) {
+    const line = lines[i];
     
-    // Detect section headers (all caps or starts with capital, stands alone)
-    if (line.match(/^[A-Z][A-Z\s&]+$/) || 
-        (line.match(/^(Experience|Education|Skills|Summary|Objective|Qualifications|Certifications|Projects)/i) && 
-         nextLine && !nextLine.match(/^\s*•|\s*-/))) {
-      if (!isFirstSection) formattedHTML += '</div>\n';
-      currentSection = line.toLowerCase();
+    // Section headers
+    if (line.match(/^(Experience|Education|Skills|Summary|Objective|Qualifications|Certifications|Projects)/i) || line.match(/^[A-Z][A-Z\s&]+$/)) {
+      if (inList) {
+        formattedHTML += '</ul>\n';
+        inList = false;
+      }
       formattedHTML += `<div class="section">\n<h2>${line}</h2>\n`;
-      isFirstSection = false;
       continue;
     }
     
-    // Detect job entries (Company | Title | Date pattern)
-    if (line.includes('|') && line.match(/\d{4}|present|current/i)) {
-      formattedHTML += `<div class="job-header">${line}</div>\n`;
-      continue;
-    }
-    
-    // Detect bullet points
-    if (line.match(/^\s*[•·‣▪▫⁃◦‣-]\s*/) || line.startsWith('●')) {
+    // Bullet points
+    if (line.match(/^\s*[•·‣▪▫⁃◦‣-●]\s*/)) {
+      if (!inList) {
+        formattedHTML += '<ul>\n';
+        inList = true;
+      }
       const bulletText = line.replace(/^\s*[•·‣▪▫⁃◦‣-●]\s*/, '');
       formattedHTML += `<li>${bulletText}</li>\n`;
-      continue;
-    }
-    
-    // Regular paragraphs
-    if (line.length > 0) {
-      formattedHTML += `<p>${line}</p>\n`;
+    } else {
+       if (inList) {
+        formattedHTML += '</ul>\n';
+        inList = false;
+      }
+      // Check for job title/company/date line
+      if (line.match(/[a-zA-Z]\s*,\s*[A-Z][a-z]+|\d{4}/)) {
+         formattedHTML += `<p class="job-header"><strong>${line}</strong></p>\n`;
+      } else {
+         formattedHTML += `<p>${line}</p>\n`;
+      }
     }
   }
   
-  if (!isFirstSection) formattedHTML += '</div>\n';
+  if (inList) {
+    formattedHTML += '</ul>\n';
+  }
+  if (lines.length > 0) formattedHTML += '</div>\n';
 
   return `
 <!DOCTYPE html>
@@ -266,119 +276,75 @@ function formatResumeAsHTML(resumeContent: string, explanation: string, jobUrl: 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Professional Resume</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Calibri', 'Arial', sans-serif;
-            font-size: 11pt;
+            font-family: 'Garamond', 'Times New Roman', serif;
+            font-size: 12pt;
             line-height: 1.4;
-            color: #000;
+            color: #333;
             background: #fff;
             max-width: 8.5in;
             margin: 0 auto;
-            padding: 0.5in;
+            padding: 0.75in;
+            box-sizing: border-box;
         }
-        
-        .header {
+        .resume-header {
             text-align: center;
             margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #ccc;
         }
-        
         .name {
-            font-size: 18pt;
+            font-size: 24pt;
             font-weight: bold;
             color: #000;
-            margin-bottom: 8px;
-            text-align: center;
+            margin-bottom: 10px;
         }
-        
         .contact {
-            font-size: 10pt;
-            color: #333;
-            text-align: center;
+            font-size: 11pt;
+            color: #444;
             margin: 2px 0;
         }
-        
         .section {
-            margin: 15px 0;
+            margin-bottom: 15px;
         }
-        
         .section h2 {
-            font-size: 12pt;
+            font-size: 14pt;
             font-weight: bold;
             color: #000;
             text-transform: uppercase;
-            border-bottom: 1px solid #000;
-            padding-bottom: 2px;
-            margin-bottom: 8px;
-            letter-spacing: 0.5px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
         }
-        
         .job-header {
-            font-weight: bold;
-            margin: 10px 0 5px 0;
-            font-size: 11pt;
+            margin: 8px 0 2px 0;
+            font-size: 12pt;
         }
-        
         .section p {
-            margin: 6px 0;
-            text-align: justify;
-            font-size: 10.5pt;
+            margin: 4px 0;
         }
-        
         .section ul {
             margin: 5px 0 10px 20px;
             padding: 0;
+            list-style-type: none;
         }
-        
         .section li {
-            margin: 3px 0;
-            list-style-type: disc;
-            font-size: 10.5pt;
-            line-height: 1.3;
+            margin-bottom: 5px;
+            line-height: 1.4;
+            position: relative;
+            padding-left: 15px;
         }
-        
-        /* Print styles */
-        @media print {
-            body {
-                margin: 0;
-                padding: 0.5in;
-                font-size: 10pt;
-            }
-            .header {
-                border-bottom: 1px solid #000;
-            }
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            body {
-                padding: 20px;
-                font-size: 12pt;
-            }
+        .section li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #000;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 9pt; color: #666;">
-            <strong>🎯 AI-Enhanced Resume</strong> • 
-            Optimized for: ${jobUrl.length > 50 ? jobUrl.substring(0, 50) + '...' : jobUrl} • 
-            Generated: ${new Date().toLocaleDateString()}
-        </div>
-    </div>
-    
     ${formattedHTML}
-    
-    <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; text-align: center; font-size: 8pt; color: #888;">
-        <p><strong>Enhancement Summary:</strong> ${explanation}</p>
-    </div>
 </body>
 </html>`;
 }
@@ -437,7 +403,7 @@ export async function POST(req: NextRequest) {
 
     // Step 4: Format as HTML
     console.log("🎨 Step 4: Formatting final output...");
-    const formattedHTML = formatResumeAsHTML(optimizedResume, explanation, jobUrl);
+    const formattedHTML = formatResumeAsHTML(optimizedResume);
 
     console.log("✅ Resume generation complete!");
     

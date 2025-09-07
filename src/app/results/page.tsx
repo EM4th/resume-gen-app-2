@@ -69,25 +69,20 @@ function ResultsContent() {
       
       // Generate high-quality canvas
       const canvas = await html2canvas(tempDiv, {
-        scale: 2,
+        scale: 3, // Increased scale for higher resolution
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: 816, // 8.5in at 96dpi
-        height: 1056, // 11in at 96dpi
-        scrollX: 0,
-        scrollY: 0,
-      });
-      
-      // Create professional PDF
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'in',
-        format: 'letter'
       });
       
       const imgData = canvas.toDataURL('image/png', 1.0);
-      pdf.addImage(imgData, 'PNG', 0, 0, 8.5, 11, undefined, 'FAST');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height]
+      });
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
       
       // Create blob URL for iframe preview
       const pdfBlob = pdf.output('blob');
@@ -106,55 +101,13 @@ function ResultsContent() {
   };
 
   const handleDownloadPdf = async () => {
-    if (!generatedResume) return;
-    
-    try {
-      // Create a temporary element for PDF generation
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = generatedResume;
-      tempDiv.style.width = '210mm';
-      tempDiv.style.minHeight = '297mm';
-      tempDiv.style.padding = '20mm';
-      tempDiv.style.backgroundColor = 'white';
-      tempDiv.style.fontFamily = 'Arial, sans-serif';
-      tempDiv.style.fontSize = '12px';
-      tempDiv.style.lineHeight = '1.4';
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.left = '-9999px';
-      tempDiv.style.top = '0';
-      
-      document.body.appendChild(tempDiv);
-
-      // Convert to canvas
-      const canvas = await html2canvas(tempDiv, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        width: 794,
-        height: 1123,
-      });
-
-      // Remove temp element
-      document.body.removeChild(tempDiv);
-
-      // Create PDF
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
-      
-      // Download directly
-      pdf.save('enhanced-resume.pdf');
-
-    } catch (error) {
-      console.error('PDF generation error:', error);
-      alert('Error generating PDF. Please try again.');
-    }
+    if (!pdfUrl) return;
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.download = 'enhanced-resume.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleDownloadDocx = async () => {
