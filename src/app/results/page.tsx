@@ -104,7 +104,6 @@ function ResultsContent() {
       setIsGeneratingPdf(false);
     }
   };
-  };
 
   const handleDownloadPdf = async () => {
     if (!generatedResume) return;
