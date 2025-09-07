@@ -42,54 +42,44 @@ function ResultsContent() {
   const generatePdfPreview = async (resumeHtml: string) => {
     setIsGeneratingPdf(true);
     try {
-      // Create a clean PDF-optimized version of the resume
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = resumeHtml;
-      
-      // PDF-optimized styling
+      // Ensure the container has the full width and is not constrained
       tempDiv.style.cssText = `
-        width: 8.5in;
-        min-height: 11in;
-        padding: 0.75in;
-        background: white;
-        font-family: 'Times New Roman', Times, serif;
-        font-size: 11pt;
-        line-height: 1.4;
-        color: #000;
         position: absolute;
         left: -9999px;
         top: 0;
-        box-sizing: border-box;
+        width: 8.5in; /* Standard resume width */
+        background: white;
       `;
-      
+      tempDiv.innerHTML = resumeHtml;
       document.body.appendChild(tempDiv);
-      
-      // Wait for fonts to load
+
+      // Wait for any images or webfonts to load
       await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Generate high-quality canvas
+
       const canvas = await html2canvas(tempDiv, {
-        scale: 3, // Increased scale for higher resolution
+        scale: 2.5, // Higher scale for better quality
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
+        windowWidth: tempDiv.scrollWidth,
+        windowHeight: tempDiv.scrollHeight,
       });
       
       const imgData = canvas.toDataURL('image/png', 1.0);
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'px',
+        // Set PDF size to match the rendered canvas size
         format: [canvas.width, canvas.height]
       });
       
       pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
       
-      // Create blob URL for iframe preview
       const pdfBlob = pdf.output('blob');
       const url = URL.createObjectURL(pdfBlob);
       setPdfUrl(url);
       
-      // Cleanup
       document.body.removeChild(tempDiv);
       
     } catch (error) {

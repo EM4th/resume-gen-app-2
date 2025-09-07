@@ -203,7 +203,6 @@ Keep it concise and professional (2-3 sentences).`;
 }
 
 function formatResumeAsHTML(resumeContent: string): string {
-  // Clean the resume content and structure it properly
   const lines = resumeContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
   
   let formattedHTML = '';
@@ -214,13 +213,14 @@ function formatResumeAsHTML(resumeContent: string): string {
   let headerLines = 0;
   while(headerLines < lines.length) {
     const line = lines[headerLines];
-    if (line.match(/^(Experience|Education|Skills|Summary|Objective|Qualifications|Certifications|Projects)/i) || line.match(/^[A-Z][A-Z\s&]+$/)) {
-      break; // Stop when a section header is found
+    // Stop when a clear section header is found
+    if (line.match(/^(Experience|Education|Skills|Summary|Objective|Qualifications|Certifications|Projects)$/i) || (line.length < 25 && line.match(/^[A-Z][A-Z\s&]+$/))) {
+      break; 
     }
     if (headerLines === 0) {
-      formattedHTML += `<div class="name">${line}</div>\n`;
+      formattedHTML += `<h1 class="name">${line}</h1>\n`;
     } else {
-      formattedHTML += `<div class="contact">${line}</div>\n`;
+      formattedHTML += `<p class="contact">${line}</p>\n`;
     }
     headerLines++;
   }
@@ -231,8 +231,8 @@ function formatResumeAsHTML(resumeContent: string): string {
   for (let i = headerLines; i < lines.length; i++) {
     const line = lines[i];
     
-    // Section headers
-    if (line.match(/^(Experience|Education|Skills|Summary|Objective|Qualifications|Certifications|Projects)/i) || line.match(/^[A-Z][A-Z\s&]+$/)) {
+    // Section headers (all caps or specific keywords)
+    if ((line.length < 25 && line.match(/^[A-Z][A-Z\s&]+$/)) || line.match(/^(Experience|Education|Skills|Summary|Objective|Qualifications|Certifications|Projects)$/i)) {
       if (inList) {
         formattedHTML += '</ul>\n';
         inList = false;
@@ -244,7 +244,7 @@ function formatResumeAsHTML(resumeContent: string): string {
     // Bullet points
     if (line.match(/^\s*[•·‣▪▫⁃◦‣-●]\s*/)) {
       if (!inList) {
-        formattedHTML += '<ul>\n';
+        formattedHTML += '<ul class="bullet-list">\n';
         inList = true;
       }
       const bulletText = line.replace(/^\s*[•·‣▪▫⁃◦‣-●]\s*/, '');
@@ -255,10 +255,10 @@ function formatResumeAsHTML(resumeContent: string): string {
         inList = false;
       }
       // Check for job title/company/date line
-      if (line.match(/[a-zA-Z]\s*,\s*[A-Z][a-z]+|\d{4}/)) {
+      if (line.match(/[a-zA-Z]\s*,\s*[A-Z][a-z]+|\d{4}/) && line.length < 150) {
          formattedHTML += `<p class="job-header"><strong>${line}</strong></p>\n`;
       } else {
-         formattedHTML += `<p>${line}</p>\n`;
+         formattedHTML += `<p class="job-description">${line}</p>\n`;
       }
     }
   }
@@ -278,66 +278,69 @@ function formatResumeAsHTML(resumeContent: string): string {
     <style>
         body {
             font-family: 'Garamond', 'Times New Roman', serif;
-            font-size: 12pt;
-            line-height: 1.4;
-            color: #333;
+            font-size: 11pt;
+            line-height: 1.3;
+            color: #111;
             background: #fff;
-            max-width: 8.5in;
-            margin: 0 auto;
-            padding: 0.75in;
+            margin: 0;
+            padding: 0.5in; /* Standard resume margin */
             box-sizing: border-box;
+            width: 8.5in;
         }
         .resume-header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 0.25in;
+            padding-bottom: 0.1in;
+            border-bottom: 1px solid #ccc;
         }
         .name {
-            font-size: 24pt;
+            font-size: 22pt;
             font-weight: bold;
             color: #000;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .contact {
-            font-size: 11pt;
-            color: #444;
-            margin: 2px 0;
+            font-size: 10pt;
+            color: #333;
+            margin: 1px 0;
         }
         .section {
-            margin-bottom: 15px;
+            margin-bottom: 0.2in;
         }
         .section h2 {
-            font-size: 14pt;
+            font-size: 13pt;
             font-weight: bold;
             color: #000;
             text-transform: uppercase;
-            border-bottom: 2px solid #000;
-            padding-bottom: 4px;
-            margin-bottom: 10px;
+            border-bottom: 1.5px solid #000;
+            padding-bottom: 3px;
+            margin-bottom: 0.15in;
             letter-spacing: 1px;
         }
         .job-header {
-            margin: 8px 0 2px 0;
-            font-size: 12pt;
+            margin: 6px 0 2px 0;
+            font-size: 11pt;
         }
-        .section p {
+        .job-description {
             margin: 4px 0;
+            text-align: justify;
         }
-        .section ul {
-            margin: 5px 0 10px 20px;
-            padding: 0;
+        .bullet-list {
+            margin: 5px 0 10px 0;
+            padding-left: 0.25in;
             list-style-type: none;
         }
-        .section li {
-            margin-bottom: 5px;
-            line-height: 1.4;
+        .bullet-list li {
+            margin-bottom: 4px;
+            line-height: 1.3;
             position: relative;
-            padding-left: 15px;
+            padding-left: 12px;
         }
-        .section li::before {
+        .bullet-list li::before {
             content: '•';
             position: absolute;
             left: 0;
-            top: 0;
+            top: 1px;
             color: #000;
             font-weight: bold;
         }
@@ -410,11 +413,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       generatedResume: formattedHTML,
-      explanation: explanation,
       originalLength: originalResume.length,
       optimizedLength: optimizedResume.length,
       jobDescriptionLength: jobDescription.length,
-      apiVersion: "ai-generator-v5.0",
+      apiVersion: "ai-generator-v5.1-hotfix", // Updated version
       timestamp: new Date().toISOString()
     });
 
