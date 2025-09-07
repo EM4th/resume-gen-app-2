@@ -77,7 +77,8 @@ function ResultsContent() {
       pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
       
       const pdfBlob = pdf.output('blob');
-      const url = URL.createObjectURL(pdfBlob);
+      // Append parameters to the URL to hide the PDF viewer's toolbar and nav panes
+      const url = `${URL.createObjectURL(pdfBlob)}#toolbar=0&navpanes=0`;
       setPdfUrl(url);
       
       document.body.removeChild(tempDiv);
@@ -220,12 +221,8 @@ function ResultsContent() {
                   <div className="w-full">
                     <iframe
                       src={pdfUrl}
-                      className="w-full h-[900px] border-2 border-gray-200 rounded-lg"
+                      className="w-full h-[1100px] border-0" // Increased height and removed border
                       title="Professional Resume Preview"
-                      style={{ 
-                        backgroundColor: 'white',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                      }}
                     />
                   </div>
                 ) : (
