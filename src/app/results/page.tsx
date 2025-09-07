@@ -43,45 +43,60 @@ function ResultsContent() {
     setIsGeneratingPdf(true);
     try {
       const tempDiv = document.createElement('div');
-      // Ensure the container has the full width and is not constrained
+      // This container holds the HTML and is styled to match the final resume paper size
       tempDiv.style.cssText = `
         position: absolute;
         left: -9999px;
         top: 0;
-        width: 8.5in; /* Standard resume width */
+        width: 8.5in; /* US Letter width */
         background: white;
+        box-sizing: border-box;
       `;
       tempDiv.innerHTML = resumeHtml;
       document.body.appendChild(tempDiv);
 
-      // Wait for any images or webfonts to load
+      // Allow time for content to render fully
       await new Promise(resolve => setTimeout(resolve, 500));
 
       const canvas = await html2canvas(tempDiv, {
-        scale: 2.5, // Higher scale for better quality
+        scale: 2, // Use a high scale for sharp text
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        windowWidth: tempDiv.scrollWidth,
-        windowHeight: tempDiv.scrollHeight,
       });
-      
-      const imgData = canvas.toDataURL('image/png', 1.0);
+
+      // Clean up the temporary div from the DOM
+      document.body.removeChild(tempDiv);
+
+      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'portrait',
-        unit: 'px',
-        // Set PDF size to match the rendered canvas size
-        format: [canvas.width, canvas.height]
+        unit: 'in',
+        format: 'letter' // Standard US Letter size
       });
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+
+      const imgWidth = 8.5;
+      const pageHeight = 11;
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Add the first page
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Loop to add new pages if the content is longer than one page
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
       
       const pdfBlob = pdf.output('blob');
       const url = URL.createObjectURL(pdfBlob);
       setPdfUrl(url);
-      
-      document.body.removeChild(tempDiv);
-      
+
     } catch (error) {
       console.error('PDF generation failed:', error);
       setPdfUrl('');
