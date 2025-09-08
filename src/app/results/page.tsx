@@ -75,21 +75,22 @@ function ResultsContent() {
         format: 'letter' // Standard US Letter size
       });
 
-      const imgWidth = 8.5;
-      const pageHeight = 11;
+      const margin = 0.5; // 0.5-inch margin
+      const imgWidth = 8.5 - 2 * margin; // Adjust for margins
+      const pageHeight = 11 - 2 * margin; // Adjust for margins
       const imgHeight = canvas.height * imgWidth / canvas.width;
       let heightLeft = imgHeight;
-      let position = 0;
+      let position = margin;
 
-      // Add the first page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      // Add the first page with margins
+      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
 
       // Loop to add new pages if the content is longer than one page
       while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
+        position = heightLeft - imgHeight + margin;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
       

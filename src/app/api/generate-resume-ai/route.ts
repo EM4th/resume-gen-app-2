@@ -160,7 +160,8 @@ INSTRUCTIONS:
 2. **ENHANCE CONTENT STRATEGICALLY** - Improve descriptions with job-relevant keywords and quantified achievements
 3. **MAINTAIN PROFESSIONAL TONE** - Use action verbs and professional language
 4. **ADD STRATEGIC KEYWORDS** - Incorporate relevant terms from the job posting naturally
-5. **QUANTIFY ACHIEVEMENTS** - Add specific metrics and results where appropriate
+5. **USE BULLET POINTS** - Ensure all lists are formatted with bullet points for clarity and professionalism
+6. **QUANTIFY ACHIEVEMENTS** - Add specific metrics and results where appropriate
 
 OUTPUT FORMAT REQUIREMENTS:
 - Use the EXACT same section headers as the original
@@ -198,7 +199,9 @@ Keep it concise and professional (2-3 sentences).`;
     
   } catch (error) {
     console.error("❌ AI generation failed:", error);
-    throw new Error(`AI resume optimization failed: ${error.message}`);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`AI resume optimization failed: ${errorMessage}`);
   }
 }
 
@@ -424,7 +427,7 @@ export async function POST(req: NextRequest) {
     console.error("❌ Resume generation failed:", error);
     
     return NextResponse.json({
-      error: `Resume generation failed: ${error.message}`,
+      error: `Resume generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       success: false,
       apiVersion: "ai-generator-v5.0",
       timestamp: new Date().toISOString()
