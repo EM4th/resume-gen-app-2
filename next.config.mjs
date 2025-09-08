@@ -7,6 +7,19 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  async headers() {
+    return [
+      {
+        source: '/ads.txt',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'text/plain',
+          },
+        ],
+      },
+    ];
+  },
   webpack: (config) => {
     // Handle missing encoding module
     config.resolve.fallback = {
