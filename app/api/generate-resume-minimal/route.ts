@@ -82,51 +82,77 @@ async function extractTextFromFile(file: File): Promise<string> {
     const isPdf = file.type === "application/pdf" || fileName.endsWith('.pdf');
     
     if (isPdf) {
-      // For PDF files, we'll try a simple text extraction approach
-      const arrayBuffer = await file.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      
-      // Convert to string and try to extract readable text
-      let text = '';
-      let consecutiveReadableChars = 0;
-      
-      for (let i = 0; i < uint8Array.length; i++) {
-        const char = String.fromCharCode(uint8Array[i]);
+      try {
+        // Try to use pdf-parse library for better PDF extraction
+        const pdf = await import('pdf-parse');
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
         
-        // Check for readable characters including common resume content
-        if (char.match(/[a-zA-Z0-9\s\.,;:!\?@\-\+\(\)\[\]\/\\#%&*=<>'"]/)) {
-          text += char;
-          consecutiveReadableChars++;
-        } else if (consecutiveReadableChars > 3) {
-          // Add space for word separation when hitting non-readable chars
-          text += ' ';
-          consecutiveReadableChars = 0;
+        const data = await pdf.default(buffer);
+        const text = data.text;
+        
+        console.log("PDF text extraction result:", { 
+          pages: data.numpages,
+          extractedLength: text.length,
+          preview: text.substring(0, 200)
+        });
+        
+        if (text && text.length > 50) {
+          console.log("Successfully extracted text from PDF using pdf-parse, length:", text.length);
+          return text.trim();
         }
+        
+        throw new Error("PDF text extraction returned empty result");
+        
+      } catch (pdfError) {
+        console.log("PDF-parse failed, falling back to simple extraction:", pdfError);
+        
+        // Fall back to simple extraction approach
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        
+        // Convert to string and try to extract readable text
+        let text = '';
+        let consecutiveReadableChars = 0;
+        
+        for (let i = 0; i < uint8Array.length; i++) {
+          const char = String.fromCharCode(uint8Array[i]);
+          
+          // Check for readable characters including common resume content
+          if (char.match(/[a-zA-Z0-9\s\.,;:!\?@\-\+\(\)\[\]\/\\#%&*=<>'"]/)) {
+            text += char;
+            consecutiveReadableChars++;
+          } else if (consecutiveReadableChars > 3) {
+            // Add space for word separation when hitting non-readable chars
+            text += ' ';
+            consecutiveReadableChars = 0;
+          }
+        }
+        
+        // Clean up the extracted text more thoroughly
+        text = text
+          .replace(/\s+/g, ' ') // Multiple spaces to single space
+          .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between camelCase
+          .replace(/(\d+)([A-Za-z])/g, '$1 $2') // Add space between numbers and letters
+          .replace(/([A-Za-z])(\d+)/g, '$1 $2') // Add space between letters and numbers
+          .replace(/[^\w\s\.,;:!\?@\-\+\(\)\[\]\/\\#%&*=<>'"]/g, ' ') // Remove special chars but keep common ones
+          .replace(/\s+/g, ' ') // Clean up spaces again
+          .trim();
+        
+        console.log("Simple PDF text extraction result:", { 
+          originalLength: uint8Array.length,
+          extractedLength: text.length,
+          preview: text.substring(0, 200)
+        });
+        
+        if (text.length > 50) {
+          console.log("Successfully extracted text from PDF using simple method, length:", text.length);
+          return text;
+        }
+        
+        // If text extraction failed, ask user to paste content
+        throw new Error("Could not extract readable text from PDF. The file may be image-based or encrypted. Please copy and paste your resume text directly into the job description field (you can include both job description and resume text).");
       }
-      
-      // Clean up the extracted text more thoroughly
-      text = text
-        .replace(/\s+/g, ' ') // Multiple spaces to single space
-        .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between camelCase
-        .replace(/(\d+)([A-Za-z])/g, '$1 $2') // Add space between numbers and letters
-        .replace(/([A-Za-z])(\d+)/g, '$1 $2') // Add space between letters and numbers
-        .replace(/[^\w\s\.,;:!\?@\-\+\(\)\[\]\/\\#%&*=<>'"]/g, ' ') // Remove special chars but keep common ones
-        .replace(/\s+/g, ' ') // Clean up spaces again
-        .trim();
-      
-      console.log("PDF text extraction result:", { 
-        originalLength: uint8Array.length,
-        extractedLength: text.length,
-        preview: text.substring(0, 200)
-      });
-      
-      if (text.length > 100) {
-        console.log("Successfully extracted text from PDF, length:", text.length);
-        return text;
-      }
-      
-      // If text extraction failed, ask user to paste content
-      throw new Error("Could not extract readable text from PDF. The file may be image-based or encrypted. Please copy and paste your resume text directly into the job description field (you can include both job description and resume text).");
     } else {
       // For other file types (Word docs, etc.)
       throw new Error("Please upload a PDF file, or copy and paste your resume text directly into the job description field.");
