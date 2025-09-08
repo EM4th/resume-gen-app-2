@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "AI Resume Generator | resume-gen.app",
@@ -32,7 +29,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="corporate">
-      <body className={inter.className}>
+      <head>
+        {/* Import Inter font via CSS instead of next/font to avoid build-time network issues */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body style={{ fontFamily: 'Inter, sans-serif' }}>
         {/* Google AdSense */}
         <Script
           async
