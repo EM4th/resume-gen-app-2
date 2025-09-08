@@ -10,10 +10,8 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "@sparticuz/chromium": "^138.0.2",
     "@tailwindcss/typography": "^0.5.16",
     "@types/formidable": "^3.4.5",
-    "@types/react-pdf": "^6.2.0",
     "daisyui": "^5.1.6",
     "docx": "^9.5.1",
     "encoding": "^0.1.13",
@@ -25,24 +23,16 @@
     "mammoth": "^1.10.0",
     "next": "15.5.2",
     "pdf-parse": "^1.1.1",
-    "pdfjs-dist": "^5.4.149",
-    "puppeteer-core": "^24.18.0",
     "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-markdown": "^10.1.0",
-    "react-pdf": "^10.1.0",
-    "remark-gfm": "^4.0.1"
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/file-saver": "^2.0.7",
     "@types/node": "^20",
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.5.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

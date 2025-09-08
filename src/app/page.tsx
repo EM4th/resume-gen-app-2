@@ -32,14 +32,14 @@ export default function Home() {
     formData.append("resume", resumeFile);
 
     try {
-      console.log("Making API request to /api/generate-resume-ai (AI-powered)");
+      console.log("Making API request to /api/generate-resume-minimal (lightweight)");
       
       // Add timeout to prevent infinite spinning
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Request timeout after 90 seconds')), 90000)
       );
       
-      const fetchPromise = fetch(`/api/generate-resume-ai?t=${Date.now()}`, {
+      const fetchPromise = fetch(`/api/generate-resume-minimal?t=${Date.now()}`, {
         method: "POST",
         body: formData,
       });
