@@ -30,16 +30,7 @@ export default function AdSense({
   console.log('AdSense render:', { adSlot, isDevelopment, adsEnabled, className });
 
   useEffect(() => {
-    console.log('AdSense useEffect:', { isDevelopment, adsEnabled });
-    if (!isDevelopment && adsEnabled) {
-      try {
-        if (typeof window !== 'undefined') {
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
-        }
-      } catch (error) {
-        console.error('AdSense error:', error);
-      }
-    }
+    // Removed adsbygoogle.push({}) to prevent duplicate auto ads initialization
   }, [isDevelopment, adsEnabled]);
 
   console.log('AdSense showing placeholder:', isDevelopment || !adsEnabled);
